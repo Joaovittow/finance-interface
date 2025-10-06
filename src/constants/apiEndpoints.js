@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://finance-api-i1ix.onrender.com';
+export const API_BASE_URL = 'https://finance-api-i1ix.onrender.com/api';
 
 export const ENDPOINTS = {
   MESES: {

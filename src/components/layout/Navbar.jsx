@@ -47,6 +47,11 @@ const Navbar = () => {
     setUserMenuOpen(false);
   };
 
+  const handleMobileLinkClick = (path) => {
+    closeAllMenus();
+    navigate(path);
+  };
+
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
       <div className="container mx-auto px-4 py-3">
@@ -127,7 +132,7 @@ const Navbar = () => {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-2 border-t border-blue-500 pt-4">
+          <div className="md:hidden mt-4 pb-2 border-t border-blue-500 pt-4 bg-blue-600">
             <div className="px-3 py-2 mb-2 bg-blue-500 rounded-lg">
               <div className="flex items-center space-x-2">
                 <User className="h-5 w-5" />
@@ -146,19 +151,18 @@ const Navbar = () => {
                 const isActive = isActivePath(item.path);
 
                 return (
-                  <Link
+                  <button
                     key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-3 rounded-lg transition-colors ${
+                    onClick={() => handleMobileLinkClick(item.path)}
+                    className={`flex items-center space-x-2 px-3 py-3 rounded-lg transition-colors text-left w-full ${
                       isActive
                         ? 'bg-blue-700 text-white'
                         : 'text-blue-100 hover:text-white hover:bg-blue-500'
                     }`}
-                    onClick={closeAllMenus}
                   >
                     <Icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
-                  </Link>
+                  </button>
                 );
               })}
 
@@ -173,10 +177,6 @@ const Navbar = () => {
           </div>
         )}
       </div>
-
-      {(mobileMenuOpen || userMenuOpen) && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={closeAllMenus} />
-      )}
     </nav>
   );
 };

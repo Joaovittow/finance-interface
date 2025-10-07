@@ -61,6 +61,7 @@ const Dashboard = () => {
   const saldoAtual = totalReceitas - totalDespesas;
 
   // Verificar se já existe o mês atual (baseado na regra personalizada)
+  // biome-ignore lint/correctness/noUnusedVariables: <explanation>
   const mesAtualJaExiste = !!mesAtual;
 
   const handleMesCriado = () => {

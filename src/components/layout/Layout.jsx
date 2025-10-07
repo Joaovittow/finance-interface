@@ -7,19 +7,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Layout = ({ children }) => {
   const { loading: financeLoading, error, limparError } = useFinanceContext();
-  const { loading: authLoading, isAuthenticated } = useAuth();
+  const { loading: authLoading } = useAuth();
 
   const loading = financeLoading || authLoading;
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {error && <ErrorAlert message={error} onClose={limparError} />}
-        {loading && <LoadingSpinner />}
-        <main>{children}</main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

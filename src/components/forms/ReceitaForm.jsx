@@ -1,151 +1,116 @@
-import React, { useState, useEffect } from 'react'
-import { validators } from '../../utils/validators'
-import Input from '../ui/Input'
-import Select from '../ui/Select'
-import Button from '../ui/Button'
-import { TIPOS_RECEITA } from '../../constants/apiEndpoints'
+import React, { useState, useEffect } from 'react';
+import { validators } from '../../utils/validators';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import Button from '../ui/Button';
+import { TIPOS_RECEITA } from '../../constants/apiEndpoints';
 
-const ReceitaForm = ({ 
-  onSubmit, 
-  onCancel, 
+const ReceitaForm = ({
+  onSubmit,
+  onCancel,
   onDelete,
   initialData = null,
-  loading = false 
+  loading = false,
 }) => {
   const [formData, setFormData] = useState({
     descricao: '',
     valor: '',
-    tipo: TIPOS_RECEITA.VARIAVEL
-  })
-  const [errors, setErrors] = useState({})
+    tipo: TIPOS_RECEITA.VARIAVEL,
+  });
+  // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         descricao: initialData.descricao,
         valor: initialData.valor.toString(),
-        tipo: initialData.tipo
-      })
+        tipo: initialData.tipo,
+      });
     }
-  }, [initialData])
-
-  const validateField = (field, value) => {
-    const fieldValidators = {
-      descricao: [validators.required, validators.minLength(2)],
-      valor: [validators.required, validators.positiveNumber],
-      tipo: [validators.required]
-    }
-
-    if (fieldValidators[field]) {
-      for (const validator of fieldValidators[field]) {
-        const error = validator(value)
-        if (error) {
-          setErrors(prev => ({ ...prev, [field]: error }))
-          return
-        }
-      }
-    }
-    setErrors(prev => ({ ...prev, [field]: null }))
-  }
+  }, [initialData]);
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    
-    const newErrors = {}
-    Object.keys(formData).forEach(field => {
-      validateField(field, formData[field])
-      if (errors[field]) newErrors[field] = errors[field]
-    })
-
-    if (Object.keys(newErrors).some(key => newErrors[key])) {
-      return
+    e.preventDefault();
+    if (!formData.descricao || !formData.valor) {
+      return;
     }
-
     onSubmit({
       ...formData,
-      valor: parseFloat(formData.valor)
-    })
-  }
+      valor: parseFloat(formData.valor),
+    });
+  };
 
   const handleDelete = () => {
     if (onDelete && initialData) {
-      onDelete(initialData)
+      onDelete(initialData);
     }
-  }
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (field !== 'observacao') {
-      validateField(field, value)
-    }
-  }
-
-  const isFormValid = !Object.keys(errors).some(key => errors[key]) && 
-                     formData.descricao && 
-                     formData.valor
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 px-2 sm:px-0 text-sm sm:text-base"
+    >
       <Input
         label="Descrição"
         value={formData.descricao}
-        onChange={(e) => handleChange('descricao', e.target.value)}
-        onValidate={(error) => setErrors(prev => ({ ...prev, descricao: error }))}
-        validation={validators.required}
-        error={errors.descricao}
+        onChange={(e) =>
+          setFormData({ ...formData, descricao: e.target.value })
+        }
         required
       />
-      
+
       <Input
         label="Valor"
         type="number"
         step="0.01"
         value={formData.valor}
-        onChange={(e) => handleChange('valor', e.target.value)}
-        onValidate={(error) => setErrors(prev => ({ ...prev, valor: error }))}
-        validation={validators.required}
-        error={errors.valor}
+        onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
         required
       />
-      
+
       <Select
         label="Tipo"
         value={formData.tipo}
-        onChange={(e) => handleChange('tipo', e.target.value)}
+        onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
         options={[
           { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
-          { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' }
+          { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
         ]}
       />
-      
-      <div className="flex space-x-3 pt-2">
-        <Button 
-          type="submit" 
+
+      <div className="flex flex-col sm:flex-row gap-2 pt-2">
+        <Button
+          type="submit"
           variant="primary"
           loading={loading}
-          disabled={loading || !isFormValid}
+          disabled={loading}
+          className="w-full sm:w-auto"
         >
           {initialData ? 'Atualizar' : 'Adicionar'} Receita
         </Button>
         {initialData && (
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             variant="danger"
             onClick={handleDelete}
+            className="w-full sm:w-auto"
           >
             Excluir Receita
           </Button>
         )}
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           variant="secondary"
           onClick={onCancel}
+          className="w-full sm:w-auto"
         >
           Cancelar
         </Button>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default ReceitaForm
+export default ReceitaForm;

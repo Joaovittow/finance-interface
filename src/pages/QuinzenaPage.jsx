@@ -145,31 +145,33 @@ const QuinzenaPage = () => {
   const { calculos } = quinzenaAtual;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 py-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
             {quinzenaAtual.tipo === 'primeira'
               ? 'Quinzena do Dia 15'
               : 'Quinzena do Dia 30'}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
             {quinzenaAtual.mes &&
               formatMonthYear(quinzenaAtual.mes.mes, quinzenaAtual.mes.ano)}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Cards de Resumo */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card padding="small">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-600">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
               Saldo Anterior
             </h3>
-            <DollarSign className="h-4 w-4 text-gray-400" />
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
           </div>
           <p
-            className={`text-xl font-bold mt-1 ${quinzenaAtual.saldoAnterior >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            className={`text-sm sm:text-xl font-bold mt-1 ${quinzenaAtual.saldoAnterior >= 0 ? 'text-green-600' : 'text-red-600'}`}
           >
             {formatCurrency(quinzenaAtual.saldoAnterior)}
           </p>
@@ -177,61 +179,68 @@ const QuinzenaPage = () => {
 
         <Card padding="small">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-600">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
               Total Receitas
             </h3>
-            <TrendingUp className="h-4 w-4 text-green-500" />
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
           </div>
-          <p className="text-xl font-bold text-green-600 mt-1">
+          <p className="text-sm sm:text-xl font-bold text-green-600 mt-1">
             {formatCurrency(calculos.totalReceitas)}
           </p>
         </Card>
 
         <Card padding="small">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-600">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
               Despesas Pagas
             </h3>
-            <TrendingDown className="h-4 w-4 text-red-500" />
+            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
           </div>
-          <p className="text-xl font-bold text-red-600 mt-1">
+          <p className="text-sm sm:text-xl font-bold text-red-600 mt-1">
             {formatCurrency(calculos.totalDespesasPagas)}
           </p>
         </Card>
 
         <Card padding="small">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-600">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
               Saldo Disponível
             </h3>
-            <DollarSign className="h-4 w-4 text-blue-500" />
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
           </div>
           <p
-            className={`text-xl font-bold mt-1 ${calculos.saldoDisponivel >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            className={`text-sm sm:text-xl font-bold mt-1 ${calculos.saldoDisponivel >= 0 ? 'text-green-600' : 'text-red-600'}`}
           >
             {formatCurrency(calculos.saldoDisponivel)}
           </p>
         </Card>
       </div>
 
+      {/* Receitas e Despesas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Receitas */}
         <div className="space-y-6">
           <Card>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Receitas</h2>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center sm:text-left">
+                Receitas
+              </h2>
               <Button
                 onClick={() => setShowReceitaForm(!showReceitaForm)}
                 icon={Plus}
                 variant="success"
                 size="small"
+                className="w-full sm:w-auto"
               >
-                Nova Receita
+                <span className="sm:inline">Nova Receita</span>
               </Button>
             </div>
 
             {showReceitaForm && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-medium text-gray-800 mb-3">Nova Receita</h3>
+              <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
+                  Nova Receita
+                </h3>
                 <form onSubmit={handleAdicionarReceita} className="space-y-3">
                   <Input
                     label="Descrição"
@@ -274,8 +283,13 @@ const QuinzenaPage = () => {
                     ]}
                   />
 
-                  <div className="flex space-x-2">
-                    <Button type="submit" variant="success" size="small">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button
+                      type="submit"
+                      variant="success"
+                      size="small"
+                      className="flex-1"
+                    >
                       Adicionar
                     </Button>
                     <Button
@@ -283,6 +297,7 @@ const QuinzenaPage = () => {
                       variant="secondary"
                       size="small"
                       onClick={() => setShowReceitaForm(false)}
+                      className="flex-1"
                     >
                       Cancelar
                     </Button>
@@ -292,8 +307,8 @@ const QuinzenaPage = () => {
             )}
 
             {editandoReceita && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-medium text-gray-800 mb-3">
+              <div className="mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
                   Editando Receita
                 </h3>
                 <ReceitaForm
@@ -309,43 +324,45 @@ const QuinzenaPage = () => {
               {quinzenaAtual.receitas?.map((receita) => (
                 <div
                   key={receita.id}
-                  className="flex items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                  className="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div>
-                      <p className="font-medium text-gray-800">
+                  <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-800 text-sm sm:text-base truncate">
                         {receita.descricao}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         {receita.tipo === 'fixa' ? 'Fixa' : 'Variável'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-green-600 font-semibold">
+                  <div className="flex items-center space-x-1 sm:space-x-2 ml-2">
+                    <p className="text-green-600 font-semibold text-sm sm:text-base whitespace-nowrap">
                       {formatCurrency(receita.valor)}
                     </p>
-                    <button
-                      className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                      onClick={() => setEditandoReceita(receita)}
-                      title="Editar receita"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                      onClick={() => handleExcluirReceita(receita)}
-                      title="Excluir receita"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex space-x-1">
+                      <button
+                        className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={() => setEditandoReceita(receita)}
+                        title="Editar receita"
+                      >
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </button>
+                      <button
+                        className="p-1 sm:p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        onClick={() => handleExcluirReceita(receita)}
+                        title="Excluir receita"
+                      >
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
 
               {(!quinzenaAtual.receitas ||
                 quinzenaAtual.receitas.length === 0) && (
-                <div className="text-center py-6 text-gray-500">
+                <div className="text-center py-6 text-gray-500 text-sm sm:text-base">
                   <p>Nenhuma receita cadastrada</p>
                 </div>
               )}
@@ -353,23 +370,29 @@ const QuinzenaPage = () => {
           </Card>
         </div>
 
+        {/* Despesas */}
         <div className="space-y-6">
           <Card>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Despesas</h2>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center sm:text-left">
+                Despesas
+              </h2>
               <Button
                 onClick={() => setShowDespesaForm(!showDespesaForm)}
                 icon={Plus}
                 variant="danger"
                 size="small"
+                className="w-full sm:w-auto"
               >
-                Nova Despesa
+                <span className="sm:inline">Nova Despesa</span>
               </Button>
             </div>
 
             {showDespesaForm && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
-                <h3 className="font-medium text-gray-800 mb-3">Nova Despesa</h3>
+              <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg border">
+                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
+                  Nova Despesa
+                </h3>
                 <DespesaForm
                   onSubmit={handleAdicionarDespesa}
                   onCancel={() => setShowDespesaForm(false)}
@@ -378,8 +401,8 @@ const QuinzenaPage = () => {
             )}
 
             {editandoDespesa && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-medium text-gray-800 mb-3">
+              <div className="mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
                   Editando Despesa
                 </h3>
                 <DespesaForm
@@ -395,50 +418,50 @@ const QuinzenaPage = () => {
               {quinzenaAtual.parcelas?.map((parcela) => (
                 <div
                   key={parcela.id}
-                  className={`p-4 rounded-lg hover:bg-opacity-80 transition-colors ${
+                  className={`p-3 sm:p-4 rounded-lg hover:bg-opacity-80 transition-colors ${
                     parcela.pago
                       ? 'bg-green-50 border border-green-200'
                       : 'bg-red-50 border border-red-200'
                   }`}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-gray-800">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-800 text-sm sm:text-base truncate">
                             {parcela.despesa?.descricao || 'Despesa sem nome'}
                             {parcela.despesa?.parcelas > 1 && (
-                              <span className="text-sm text-gray-600 ml-2">
+                              <span className="text-xs sm:text-sm text-gray-600 ml-1 sm:ml-2 whitespace-nowrap">
                                 ({parcela.numeroParcela}/
                                 {parcela.despesa.parcelas})
                               </span>
                             )}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
                             {parcela.despesa?.categoria || 'Sem categoria'} •
                             Vence: {formatDate(parcela.dataVencimento)}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-2 ml-4">
+                        <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
                           {parcela.despesa && !editandoDespesa && (
                             <>
                               <button
-                                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors"
                                 onClick={() =>
                                   setEditandoDespesa(parcela.despesa)
                                 }
                                 title="Editar despesa"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                               </button>
                               <button
-                                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                className="p-1 sm:p-2 text-gray-400 hover:text-red-600 transition-colors"
                                 onClick={() =>
                                   handleExcluirDespesa(parcela.despesa)
                                 }
                                 title="Excluir despesa"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               </button>
                             </>
                           )}
@@ -446,9 +469,9 @@ const QuinzenaPage = () => {
                       </div>
                     </div>
 
-                    <div className="text-right ml-4 flex flex-col items-end">
+                    <div className="text-right ml-2 flex flex-col items-end flex-shrink-0">
                       <p
-                        className={`font-semibold ${
+                        className={`font-semibold text-sm sm:text-base whitespace-nowrap ${
                           parcela.pago ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
@@ -462,17 +485,17 @@ const QuinzenaPage = () => {
                           icon={Check}
                           variant="success"
                           size="small"
-                          className="mt-1"
+                          className="mt-1 text-xs"
                         >
-                          Pagar
+                          <span className="sm:inline">Pagar</span>
                         </Button>
                       )}
                     </div>
                   </div>
 
                   {parcela.pago && (
-                    <div className="flex items-center space-x-1 text-green-600 text-sm mt-2">
-                      <Check className="h-4 w-4" />
+                    <div className="flex items-center space-x-1 text-green-600 text-xs sm:text-sm mt-2">
+                      <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>Pago em {formatDate(parcela.dataPagamento)}</span>
                     </div>
                   )}
@@ -481,7 +504,7 @@ const QuinzenaPage = () => {
 
               {(!quinzenaAtual.parcelas ||
                 quinzenaAtual.parcelas.length === 0) && (
-                <div className="text-center py-6 text-gray-500">
+                <div className="text-center py-6 text-gray-500 text-sm sm:text-base">
                   <p>Nenhuma despesa cadastrada</p>
                 </div>
               )}

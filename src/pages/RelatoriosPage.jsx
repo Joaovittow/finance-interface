@@ -11,26 +11,22 @@ const RelatoriosPage = () => {
   const [mesSelecionado, setMesSelecionado] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Encontrar o mês ativo baseado na regra personalizada
   useEffect(() => {
     if (meses.length > 0) {
       const mesAtivoCalculado = calcularMesAtivo();
-
-      // Buscar o mês que corresponde ao período ativo
       const mesAtivo =
         meses.find(
           (mes) =>
             mes.mes === mesAtivoCalculado.mes &&
             mes.ano === mesAtivoCalculado.ano,
-        ) || meses[0]; // Fallback para o primeiro mês se não encontrar
-
+        ) || meses[0];
       if (mesAtivo) {
         setMesSelecionado(mesAtivo.id);
       }
     }
   }, [meses]);
 
-  // Gerar relatório quando o mês selecionado mudar
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (mesSelecionado) {
       gerarRelatorio(mesSelecionado);
@@ -39,8 +35,6 @@ const RelatoriosPage = () => {
 
   const gerarRelatorio = (mesId) => {
     setLoading(true);
-
-    // Simular um pequeno delay para melhor UX
     setTimeout(() => {
       if (!meses.length) {
         setDadosRelatorio(null);
@@ -55,7 +49,6 @@ const RelatoriosPage = () => {
         return;
       }
 
-      // Dados para gráfico de pizza (categorias)
       const gastosPorCategoria = {};
       mes.quinzenas.forEach((quinzena) => {
         quinzena.parcelas.forEach((parcela) => {
@@ -76,7 +69,6 @@ const RelatoriosPage = () => {
         }),
       );
 
-      // Dados para gráfico de barras (quinzenas)
       const dadosQuinzenas = mes.quinzenas.map((quinzena) => {
         const totalReceitas = quinzena.receitas.reduce(
           (sum, rec) => sum + rec.valor,
@@ -88,7 +80,6 @@ const RelatoriosPage = () => {
             (sum, parc) => sum + (parc.valorPago || parc.valorParcela),
             0,
           );
-
         return {
           label: quinzena.tipo === 'primeira' ? 'Dia 15' : 'Dia 30',
           receitas: totalReceitas,
@@ -147,7 +138,7 @@ const RelatoriosPage = () => {
   if (!meses.length) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="text-gray-500">
+        <div className="text-gray-500 text-center px-3">
           Nenhum mês cadastrado para gerar relatórios.
         </div>
       </div>
@@ -155,20 +146,21 @@ const RelatoriosPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Relatórios</h1>
-          <p className="text-gray-600 mt-2">
-            Análise detalhada das suas finanças
-          </p>
-        </div>
+    <div className="space-y-6 px-3 sm:px-6 lg:px-10 py-4">
+      {/* Título */}
+      <div className="text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          Relatórios
+        </h1>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">
+          Análise detalhada das suas finanças
+        </p>
       </div>
 
-      {/* Informação do Período Ativo */}
+      {/* Card de informação */}
       <Card>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm sm:text-base">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
             <div className="flex-shrink-0">
               <svg
                 className="h-5 w-5 text-blue-400"
@@ -182,37 +174,33 @@ const RelatoriosPage = () => {
                 />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">
-                Período Ativo
-              </h3>
-              <div className="mt-1 text-sm text-blue-700">
-                <p>
-                  O mês considerado <strong>ativo</strong> é aquele entre{' '}
-                  <strong>dia 11 do mês atual e dia 10 do próximo mês</strong>.
-                </p>
-              </div>
+            <div>
+              <h3 className="font-medium text-blue-800">Período Ativo</h3>
+              <p className="text-blue-700 mt-1">
+                O mês ativo é aquele entre <strong>dia 11</strong> e{' '}
+                <strong>dia 10 do próximo mês</strong>.
+              </p>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Seletor de Mês */}
+      {/* Selecionar Mês */}
       <Card>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
               Selecionar Mês
             </h2>
             <p className="text-sm text-gray-600">
               Escolha o período para visualizar os relatórios
             </p>
           </div>
-          <div className="flex-1 max-w-xs">
+          <div className="w-full sm:max-w-xs">
             <select
               value={mesSelecionado}
               onChange={(e) => setMesSelecionado(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              className="w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm sm:text-base"
               disabled={loading}
             >
               <option value="">Selecione um mês</option>
@@ -230,29 +218,29 @@ const RelatoriosPage = () => {
       </Card>
 
       {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-gray-500">Gerando relatório...</div>
+        <div className="flex justify-center items-center py-8 text-gray-500">
+          Gerando relatório...
         </div>
       )}
 
       {!mesSelecionado && !loading && (
         <Card>
-          <div className="text-center py-8 text-gray-500">
-            <p>Selecione um mês para visualizar os relatórios</p>
+          <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
+            Selecione um mês para visualizar os relatórios
           </div>
         </Card>
       )}
 
       {dadosRelatorio && mesSelecionado && !loading && (
         <>
-          {/* Header do Relatório com Indicador de Ativo */}
+          {/* Cabeçalho */}
           <Card>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                   Relatório - {dadosRelatorio.mes}
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-600 text-sm sm:text-base">
                   Período completo do mês selecionado
                 </p>
               </div>
@@ -260,41 +248,39 @@ const RelatoriosPage = () => {
                 dadosRelatorio.mesObj.mes,
                 dadosRelatorio.mesObj.ano,
               ) && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 self-start sm:self-auto">
                   Mês Ativo
                 </span>
               )}
             </div>
           </Card>
 
-          {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Cards de resumo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <Card>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-1">
                 Total Receitas
               </h3>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-xl sm:text-2xl font-bold text-green-600">
                 {formatCurrency(dadosRelatorio.resumo.totalReceitas)}
               </p>
-              <p className="text-sm text-gray-500 mt-1">{dadosRelatorio.mes}</p>
             </Card>
 
             <Card>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-1">
                 Total Despesas
               </h3>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-xl sm:text-2xl font-bold text-red-600">
                 {formatCurrency(dadosRelatorio.resumo.totalDespesas)}
               </p>
-              <p className="text-sm text-gray-500 mt-1">{dadosRelatorio.mes}</p>
             </Card>
 
             <Card>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-1">
                 Saldo Final
               </h3>
               <p
-                className={`text-2xl font-bold ${
+                className={`text-xl sm:text-2xl font-bold ${
                   dadosRelatorio.resumo.saldo >= 0
                     ? 'text-green-600'
                     : 'text-red-600'
@@ -302,81 +288,78 @@ const RelatoriosPage = () => {
               >
                 {formatCurrency(dadosRelatorio.resumo.saldo)}
               </p>
-              <p className="text-sm text-gray-500 mt-1">{dadosRelatorio.mes}</p>
             </Card>
           </div>
 
+          {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Gráfico de Pizza - Categorias */}
             <Card>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Gastos por Categoria - {dadosRelatorio.mes}
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
+                Gastos por Categoria
               </h2>
               {dadosRelatorio.categorias.length > 0 ? (
                 <PieChart data={dadosRelatorio.categorias} colors={colors} />
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Nenhuma despesa cadastrada para análise</p>
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  Nenhuma despesa cadastrada
                 </div>
               )}
             </Card>
 
-            {/* Gráfico de Barras - Quinzenas */}
             <Card>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Comparativo entre Quinzenas - {dadosRelatorio.mes}
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
+                Comparativo Quinzenas
               </h2>
               {dadosRelatorio.quinzenas.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <BarChart
                     data={dadosRelatorio.quinzenas.map((q) => ({
                       label: q.label,
                       value: q.receitas,
                     }))}
                     colors={['#10B981']}
-                    height={150}
+                    height={160}
                   />
-                  <div className="text-sm text-gray-600 text-center">
+                  <p className="text-sm text-center text-gray-600">
                     Receitas por Quinzena
-                  </div>
-
+                  </p>
                   <BarChart
                     data={dadosRelatorio.quinzenas.map((q) => ({
                       label: q.label,
                       value: q.despesas,
                     }))}
                     colors={['#EF4444']}
-                    height={150}
+                    height={160}
                   />
-                  <div className="text-sm text-gray-600 text-center">
+                  <p className="text-sm text-center text-gray-600">
                     Despesas por Quinzena
-                  </div>
+                  </p>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Nenhum dado disponível para comparação</p>
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  Nenhum dado disponível
                 </div>
               )}
             </Card>
           </div>
 
-          {/* Tabela Detalhada */}
+          {/* Tabela detalhada */}
           <Card>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Detalhamento por Categoria - {dadosRelatorio.mes}
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
+              Detalhamento por Categoria
             </h2>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm sm:text-base">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">
+                    <th className="text-left py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700">
                       Categoria
                     </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-700">
-                      Valor Gasto
+                    <th className="text-right py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700">
+                      Valor
                     </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-700">
-                      Percentual
+                    <th className="text-right py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700">
+                      %
                     </th>
                   </tr>
                 </thead>
@@ -386,8 +369,8 @@ const RelatoriosPage = () => {
                       key={index}
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
-                      <td className="py-3 px-4 text-gray-800">
-                        <div className="flex items-center space-x-2">
+                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-gray-800">
+                        <div className="flex items-center gap-2">
                           <div
                             className="w-3 h-3 rounded"
                             style={{
@@ -397,10 +380,10 @@ const RelatoriosPage = () => {
                           <span>{categoria.label}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-right text-gray-800 font-medium">
+                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right font-medium text-gray-800">
                         {formatCurrency(categoria.value)}
                       </td>
-                      <td className="py-3 px-4 text-right text-gray-600">
+                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right text-gray-600">
                         {dadosRelatorio.resumo.totalDespesas > 0
                           ? (
                               (categoria.value /
@@ -418,7 +401,7 @@ const RelatoriosPage = () => {
                         colSpan="3"
                         className="py-8 text-center text-gray-500"
                       >
-                        Nenhuma despesa encontrada para este período
+                        Nenhuma despesa encontrada
                       </td>
                     </tr>
                   )}
@@ -426,11 +409,11 @@ const RelatoriosPage = () => {
                 {dadosRelatorio.categorias.length > 0 && (
                   <tfoot>
                     <tr className="bg-gray-50 font-semibold">
-                      <td className="py-3 px-4 text-gray-800">Total</td>
-                      <td className="py-3 px-4 text-right text-gray-800">
+                      <td className="py-2 px-3 sm:py-3 sm:px-4">Total</td>
+                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right">
                         {formatCurrency(dadosRelatorio.resumo.totalDespesas)}
                       </td>
-                      <td className="py-3 px-4 text-right text-gray-800">
+                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right">
                         100%
                       </td>
                     </tr>

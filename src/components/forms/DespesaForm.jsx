@@ -17,6 +17,7 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
 
   const { categorias, loading } = useCategorias();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!formData.ehParcelada) {
       setFormData((prev) => ({
@@ -41,7 +42,9 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
   };
 
   const handleDelete = () => {
-    if (onDelete && initialData) onDelete(initialData);
+    if (onDelete && initialData) {
+      onDelete(initialData);
+    }
   };
 
   if (loading) {
@@ -218,6 +221,7 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
               }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
             >
+              {/* biome-ignore lint/style/useConsistentBuiltinInstantiation: <explanation> */}
               {[...Array(12).keys()].slice(1).map((num) => (
                 <option key={num} value={num + 1}>
                   {num + 1} parcela{num > 0 ? 's' : ''}

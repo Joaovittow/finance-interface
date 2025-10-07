@@ -162,7 +162,7 @@ const QuinzenaPage = () => {
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         <Card padding="small">
           <div className="flex items-center justify-between">
             <h3 className="text-xs sm:text-sm font-medium text-gray-600">
@@ -186,6 +186,19 @@ const QuinzenaPage = () => {
           </div>
           <p className="text-sm sm:text-xl font-bold text-green-600 mt-1">
             {formatCurrency(calculos.totalReceitas)}
+          </p>
+        </Card>
+
+        {/* Novo card para Total de Despesas */}
+        <Card padding="small">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
+              Total Despesas
+            </h3>
+            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+          </div>
+          <p className="text-sm sm:text-xl font-bold text-red-600 mt-1">
+            {formatCurrency(calculos.totalDespesas)}
           </p>
         </Card>
 

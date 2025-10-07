@@ -12,31 +12,34 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
     parcelas: 1,
     ehParcelada: false,
     dataPrimeiraParcela: new Date().toISOString().split('T')[0],
-    ...initialData
+    ...initialData,
   });
 
   const { categorias, loading } = useCategorias();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!formData.ehParcelada) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        dataPrimeiraParcela: prev.data
+        dataPrimeiraParcela: prev.data,
       }));
     }
   }, [formData.data, formData.ehParcelada]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const dadosParaEnviar = {
       ...formData,
       valorTotal: parseFloat(formData.valorTotal),
       parcelas: formData.ehParcelada ? parseInt(formData.parcelas) : 1,
-      dataPrimeiraParcela: formData.ehParcelada ? formData.dataPrimeiraParcela : formData.data,
-      data: formData.data
+      dataPrimeiraParcela: formData.ehParcelada
+        ? formData.dataPrimeiraParcela
+        : formData.data,
+      data: formData.data,
     };
-    
+
     onSubmit(dadosParaEnviar);
   };
 
@@ -63,7 +66,9 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
         <input
           type="text"
           value={formData.descricao}
-          onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, descricao: e.target.value })
+          }
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           required
         />
@@ -78,7 +83,9 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
           step="0.01"
           min="0"
           value={formData.valorTotal}
-          onChange={(e) => setFormData({ ...formData, valorTotal: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, valorTotal: e.target.value })
+          }
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           required
         />
@@ -88,19 +95,39 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Categoria
         </label>
-        <select
-          value={formData.categoria}
-          onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          required
-        >
-          <option value="">Selecione uma categoria</option>
-          {categorias.map((categoria, index) => (
-            <option key={index} value={categoria}>
-              {categoria}
-            </option>
-          ))}
-        </select>
+        {categorias.length === 0 ? (
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={formData.categoria}
+              onChange={(e) =>
+                setFormData({ ...formData, categoria: e.target.value })
+              }
+              placeholder="Digite uma categoria (ex: Alimentação, Transporte...)"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+            <p className="text-xs text-gray-500">
+              Nenhuma categoria configurada. Digite uma categoria personalizada.
+            </p>
+          </div>
+        ) : (
+          <select
+            value={formData.categoria}
+            onChange={(e) =>
+              setFormData({ ...formData, categoria: e.target.value })
+            }
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          >
+            <option value="">Selecione uma categoria</option>
+            {categorias.map((categoria, index) => (
+              <option key={index} value={categoria}>
+                {categoria}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div>
@@ -122,7 +149,9 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
         </label>
         <textarea
           value={formData.observacao}
-          onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, observacao: e.target.value })
+          }
           rows={2}
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
@@ -131,19 +160,23 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
       <div className="flex items-center space-x-2">
         <button
           type="button"
-          onClick={() => setFormData({ 
-            ...formData, 
-            ehParcelada: !formData.ehParcelada,
-            parcelas: !formData.ehParcelada ? 2 : 1,
-            dataPrimeiraParcela: formData.data
-          })}
+          onClick={() =>
+            setFormData({
+              ...formData,
+              ehParcelada: !formData.ehParcelada,
+              parcelas: !formData.ehParcelada ? 2 : 1,
+              dataPrimeiraParcela: formData.data,
+            })
+          }
           className={`px-4 py-2 rounded-md border transition-colors ${
-            formData.ehParcelada 
-              ? 'bg-blue-100 border-blue-500 text-blue-700' 
+            formData.ehParcelada
+              ? 'bg-blue-100 border-blue-500 text-blue-700'
               : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          {formData.ehParcelada ? '✓ Despesa Parcelada' : 'É uma despesa parcelada?'}
+          {formData.ehParcelada
+            ? '✓ Despesa Parcelada'
+            : 'É uma despesa parcelada?'}
         </button>
       </div>
 
@@ -156,7 +189,12 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
             <input
               type="date"
               value={formData.dataPrimeiraParcela}
-              onChange={(e) => setFormData({ ...formData, dataPrimeiraParcela: e.target.value })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  dataPrimeiraParcela: e.target.value,
+                })
+              }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -168,10 +206,12 @@ const DespesaForm = ({ onSubmit, onCancel, initialData, onDelete }) => {
             </label>
             <select
               value={formData.parcelas}
-              onChange={(e) => setFormData({ ...formData, parcelas: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setFormData({ ...formData, parcelas: parseInt(e.target.value) })
+              }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
                 <option key={num} value={num}>
                   {num} parcela{num > 1 ? 's' : ''}
                 </option>

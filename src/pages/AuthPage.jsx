@@ -1,5 +1,4 @@
-// src/pages/AuthPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoginForm from '../components/auth/LoginForm';
@@ -7,9 +6,8 @@ import RegisterForm from '../components/auth/RegisterForm';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  // Se já estiver autenticado, redireciona para a página inicial
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }

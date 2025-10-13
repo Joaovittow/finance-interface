@@ -65,36 +65,19 @@ const QuinzenaPage = () => {
         tipo: TIPOS_RECEITA.VARIAVEL,
       });
       setShowReceitaForm(false);
+      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     } catch (error) {
+      // Error handled by context
     }
   };
 
   const handleAdicionarDespesa = async (despesaData) => {
-    try {    
-      const converterParaUTC = (dataString) => {
-        const data = new Date(dataString);
-        return new Date(Date.UTC(
-          data.getFullYear(),
-          data.getMonth(),
-          data.getDate()
-        )).toISOString().split('T')[0];
-      };
-
-      const dadosCorrigidos = {
-        ...despesaData,
-        valorTotal: parseFloat(despesaData.valorTotal),
-        parcelas: parseInt(despesaData.parcelas) || 1,
-        data: converterParaUTC(despesaData.data),
-        dataPrimeiraParcela: despesaData.dataPrimeiraParcela 
-          ? converterParaUTC(despesaData.dataPrimeiraParcela)
-          : converterParaUTC(despesaData.data),
-      };
-      
-      await adicionarDespesa(id, dadosCorrigidos);
+    try {
+      await adicionarDespesa(id, despesaData);
       setShowDespesaForm(false);
       await carregarQuinzena(id);
     } catch (error) {
-      alert('Erro ao adicionar despesa. Verifique os dados e tente novamente.');
+      console.error('Erro ao adicionar despesa:', error);
     }
   };
 
@@ -117,9 +100,12 @@ const QuinzenaPage = () => {
 
   const handleEditarDespesa = async (despesaData) => {
     try {
+      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
       const resultado = await atualizarDespesa(editandoDespesa.id, despesaData);
       setEditandoDespesa(null);
+      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     } catch (error) {
+      // Error handled by context
     }
   };
 
@@ -134,7 +120,9 @@ const QuinzenaPage = () => {
   const handleMarcarParcelaComoPaga = async (parcelaId) => {
     try {
       await marcarParcelaComoPaga(parcelaId);
+      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     } catch (error) {
+      // Error handled by context
     }
   };
 
@@ -158,6 +146,7 @@ const QuinzenaPage = () => {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8 py-4">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div className="text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
@@ -172,6 +161,7 @@ const QuinzenaPage = () => {
         </div>
       </div>
 
+      {/* Cards de Resumo */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         <Card padding="small">
           <div className="flex items-center justify-between">
@@ -199,6 +189,7 @@ const QuinzenaPage = () => {
           </p>
         </Card>
 
+        {/* Novo card para Total de Despesas */}
         <Card padding="small">
           <div className="flex items-center justify-between">
             <h3 className="text-xs sm:text-sm font-medium text-gray-600">
@@ -238,7 +229,9 @@ const QuinzenaPage = () => {
         </Card>
       </div>
 
+      {/* Receitas e Despesas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Receitas */}
         <div className="space-y-6">
           <Card>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
@@ -390,6 +383,7 @@ const QuinzenaPage = () => {
           </Card>
         </div>
 
+        {/* Despesas */}
         <div className="space-y-6">
           <Card>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">

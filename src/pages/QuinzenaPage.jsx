@@ -71,15 +71,35 @@ const QuinzenaPage = () => {
     }
   };
 
-  const handleAdicionarDespesa = async (despesaData) => {
-    try {
-      await adicionarDespesa(id, despesaData);
-      setShowDespesaForm(false);
-      await carregarQuinzena(id);
-    } catch (error) {
-      console.error('Erro ao adicionar despesa:', error);
-    }
-  };
+const handleAdicionarDespesa = async (despesaData) => {
+  try {    
+    const converterParaUTC = (dataString) => {
+      const data = new Date(dataString);
+      return new Date(Date.UTC(
+        data.getFullYear(),
+        data.getMonth(),
+        data.getDate()
+      )).toISOString().split('T')[0];
+    };
+
+    const dadosCorrigidos = {
+      ...despesaData,
+      valorTotal: parseFloat(despesaData.valorTotal),
+      parcelas: parseInt(despesaData.parcelas) || 1,
+      data: converterParaUTC(despesaData.data),
+      dataPrimeiraParcela: despesaData.dataPrimeiraParcela 
+        ? converterParaUTC(despesaData.dataPrimeiraParcela)
+        : converterParaUTC(despesaData.data),
+    };
+    
+    await adicionarDespesa(id, dadosCorrigidos);
+    setShowDespesaForm(false);
+    await carregarQuinzena(id);
+  } catch (error) {
+    console.error('❌ Erro ao adicionar despesa:', error);
+    alert('Erro ao adicionar despesa. Verifique os dados e tente novamente.');
+  }
+};
 
   const handleEditarReceita = async (receitaData) => {
     try {

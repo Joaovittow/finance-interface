@@ -6,9 +6,16 @@ export const formatCurrency = (value) => {
 }
 
 export const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('pt-BR').format(date)
-}
+  if (!dateString) return '';
+  
+  if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [ano, mes, dia] = dateString.split('-');
+    return `${dia}/${mes}/${ano}`;
+  }
+  
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR');
+};
 
 export const formatMonthYear = (mes, ano) => {
   try {

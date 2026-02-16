@@ -8,26 +8,25 @@ const Card = ({
   ...props 
 }) => {
   const paddingClasses = {
+    none: 'p-0',
     small: 'p-4',
     medium: 'p-6',
     large: 'p-8'
   }
 
-  const classes = `
-    bg-white rounded-lg shadow-md border border-gray-200
-    ${paddingClasses[padding]}
-    ${hover ? 'hover:shadow-lg transition-shadow duration-200' : ''}
-    ${className}
-  `.trim()
-
   return (
-    <div className={`
-  bg-white rounded-lg shadow-md border border-gray-200
-  ${paddingClasses[padding]}
-  ${hover ? 'hover:shadow-lg transition-shadow duration-200' : ''}
-  w-full // Garante que o card ocupe toda a largura disponível
-  ${className}
-`.trim()} {...props}>
+    <div 
+      className={`
+        bg-white dark:bg-dark-card 
+        rounded-2xl 
+        shadow-soft 
+        border border-gray-100 dark:border-dark-border
+        ${paddingClasses[padding]}
+        ${hover ? 'hover:shadow-lg hover:-translate-y-1 transition-all duration-300' : ''}
+        ${className}
+      `.trim()} 
+      {...props}
+    >
       {children}
     </div>
   )

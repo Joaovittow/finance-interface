@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { validators } from '../../utils/validators';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -17,8 +16,6 @@ const ReceitaForm = ({
     valor: '',
     tipo: TIPOS_RECEITA.VARIAVEL,
   });
-  // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialData) {
@@ -48,10 +45,7 @@ const ReceitaForm = ({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 px-2 sm:px-0 text-sm sm:text-base"
-    >
+    <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         label="Descrição"
         value={formData.descricao}
@@ -59,34 +53,39 @@ const ReceitaForm = ({
           setFormData({ ...formData, descricao: e.target.value })
         }
         required
+        className="bg-white dark:bg-dark-card"
       />
 
-      <Input
-        label="Valor"
-        type="number"
-        step="0.01"
-        value={formData.valor}
-        onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-        required
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input
+          label="Valor"
+          type="number"
+          step="0.01"
+          value={formData.valor}
+          onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+          required
+          className="bg-white dark:bg-dark-card"
+        />
 
-      <Select
-        label="Tipo"
-        value={formData.tipo}
-        onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-        options={[
-          { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
-          { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
-        ]}
-      />
+        <Select
+          label="Tipo"
+          value={formData.tipo}
+          onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+          options={[
+            { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
+            { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
+          ]}
+          className="bg-white dark:bg-dark-card"
+        />
+      </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 pt-2">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button
           type="submit"
           variant="primary"
           loading={loading}
           disabled={loading}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto flex-1"
         >
           {initialData ? 'Atualizar' : 'Adicionar'} Receita
         </Button>
@@ -95,16 +94,16 @@ const ReceitaForm = ({
             type="button"
             variant="danger"
             onClick={handleDelete}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto flex-1"
           >
-            Excluir Receita
+            Excluir
           </Button>
         )}
         <Button
           type="button"
-          variant="secondary"
+          variant="ghost"
           onClick={onCancel}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto flex-1"
         >
           Cancelar
         </Button>

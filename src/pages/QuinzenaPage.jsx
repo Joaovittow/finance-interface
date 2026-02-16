@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   Plus,
   Check,
@@ -8,6 +8,11 @@ import {
   TrendingDown,
   Edit,
   Trash2,
+  ChevronLeft,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CalendarCheck,
+  AlertCircle
 } from 'lucide-react';
 import { useFinanceContext } from '../contexts/FinanceContext';
 import {
@@ -65,7 +70,6 @@ const QuinzenaPage = () => {
         tipo: TIPOS_RECEITA.VARIAVEL,
       });
       setShowReceitaForm(false);
-      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     } catch (error) {
       // Error handled by context
     }
@@ -103,7 +107,6 @@ const QuinzenaPage = () => {
       // biome-ignore lint/correctness/noUnusedVariables: <explanation>
       const resultado = await atualizarDespesa(editandoDespesa.id, despesaData);
       setEditandoDespesa(null);
-      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     } catch (error) {
       // Error handled by context
     }
@@ -120,7 +123,6 @@ const QuinzenaPage = () => {
   const handleMarcarParcelaComoPaga = async (parcelaId) => {
     try {
       await marcarParcelaComoPaga(parcelaId);
-      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     } catch (error) {
       // Error handled by context
     }
@@ -128,16 +130,17 @@ const QuinzenaPage = () => {
 
   if (loading && !quinzenaAtual) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="text-gray-500">Carregando quinzena...</div>
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
       </div>
     );
   }
 
   if (!quinzenaAtual) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
         <p>Quinzena não encontrada</p>
+        <Link to="/meses" className="text-brand-600 hover:underline mt-2 inline-block">Voltar para Meses</Link>
       </div>
     );
   }
@@ -145,385 +148,276 @@ const QuinzenaPage = () => {
   const { calculos } = quinzenaAtual;
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8 py-4">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div className="text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-            {quinzenaAtual.tipo === 'primeira'
-              ? 'Quinzena do Dia 15'
-              : 'Quinzena do Dia 30'}
-          </h1>
-          <p className="text-gray-600 mt-2 text-sm sm:text-base">
-            {quinzenaAtual.mes &&
-              formatMonthYear(quinzenaAtual.mes.mes, quinzenaAtual.mes.ano)}
-          </p>
+      <div className="flex flex-col gap-4">
+        <Link to="/meses" className="flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors w-fit">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Voltar para Meses
+        </Link>
+        
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+          <div>
+             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {quinzenaAtual.tipo === 'primeira' ? '1ª Quinzena' : '2ª Quinzena'}
+             </h1>
+             <p className="text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-2">
+                <CalendarCheck className="h-4 w-4" />
+                {quinzenaAtual.mes && formatMonthYear(quinzenaAtual.mes.mes, quinzenaAtual.mes.ano)}
+             </p>
+          </div>
+          
+          <div className="bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-xl border border-brand-100 dark:border-brand-900/30">
+             <span className="text-xs text-brand-600 dark:text-brand-400 uppercase font-semibold tracking-wider">Saldo Disponível</span>
+             <p className={`text-xl font-bold ${calculos.saldoDisponivel >= 0 ? 'text-brand-700 dark:text-brand-300' : 'text-red-600 dark:text-red-400'}`}>
+                {formatCurrency(calculos.saldoDisponivel)}
+             </p>
+          </div>
         </div>
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
-        <Card padding="small">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
-              Saldo Anterior
-            </h3>
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-soft border border-gray-100 dark:border-dark-border">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
+               <ArrowDownLeft className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Receitas</span>
           </div>
-          <p
-            className={`text-sm sm:text-xl font-bold mt-1 ${quinzenaAtual.saldoAnterior >= 0 ? 'text-green-600' : 'text-red-600'}`}
-          >
-            {formatCurrency(quinzenaAtual.saldoAnterior)}
-          </p>
-        </Card>
+          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(calculos.totalReceitas)}</p>
+        </div>
 
-        <Card padding="small">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
-              Total Receitas
-            </h3>
-            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+        <div className="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-soft border border-gray-100 dark:border-dark-border">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg">
+               <ArrowUpRight className="h-4 w-4 text-red-600 dark:text-red-400" />
+            </div>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Despesas</span>
           </div>
-          <p className="text-sm sm:text-xl font-bold text-green-600 mt-1">
-            {formatCurrency(calculos.totalReceitas)}
-          </p>
-        </Card>
+          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(calculos.totalDespesas)}</p>
+        </div>
 
-        {/* Novo card para Total de Despesas */}
-        <Card padding="small">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
-              Total Despesas
-            </h3>
-            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+        <div className="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-soft border border-gray-100 dark:border-dark-border">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+               <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Pagas</span>
           </div>
-          <p className="text-sm sm:text-xl font-bold text-red-600 mt-1">
-            {formatCurrency(calculos.totalDespesas)}
-          </p>
-        </Card>
-
-        <Card padding="small">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
-              Despesas Pagas
-            </h3>
-            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(calculos.totalDespesasPagas)}</p>
+        </div>
+        
+        <div className="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-soft border border-gray-100 dark:border-dark-border">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+               <DollarSign className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            </div>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Anterior</span>
           </div>
-          <p className="text-sm sm:text-xl font-bold text-red-600 mt-1">
-            {formatCurrency(calculos.totalDespesasPagas)}
-          </p>
-        </Card>
-
-        <Card padding="small">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-600">
-              Saldo Disponível
-            </h3>
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-          </div>
-          <p
-            className={`text-sm sm:text-xl font-bold mt-1 ${calculos.saldoDisponivel >= 0 ? 'text-green-600' : 'text-red-600'}`}
-          >
-            {formatCurrency(calculos.saldoDisponivel)}
-          </p>
-        </Card>
+          <p className={`text-lg font-bold ${quinzenaAtual.saldoAnterior >= 0 ? 'text-gray-900 dark:text-gray-100' : 'text-red-600'}`}>{formatCurrency(quinzenaAtual.saldoAnterior)}</p>
+        </div>
       </div>
 
-      {/* Receitas e Despesas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Receitas */}
-        <div className="space-y-6">
-          <Card>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center sm:text-left">
-                Receitas
-              </h2>
-              <Button
-                onClick={() => setShowReceitaForm(!showReceitaForm)}
-                icon={Plus}
-                variant="success"
-                size="small"
-                className="w-full sm:w-auto"
-              >
-                <span className="sm:inline">Nova Receita</span>
-              </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Receitas Column */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+               <div className="h-2 w-2 rounded-full bg-green-500"></div>
+               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Receitas</h2>
             </div>
+            <Button 
+               onClick={() => setShowReceitaForm(!showReceitaForm)} 
+               variant="secondary" 
+               size="small" 
+               icon={Plus}
+               className="!bg-green-50 !text-green-700 hover:!bg-green-100 dark:!bg-green-900/20 dark:!text-green-300"
+            >
+               Adicionar
+            </Button>
+          </div>
 
-            {showReceitaForm && (
-              <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
-                  Nova Receita
-                </h3>
-                <form onSubmit={handleAdicionarReceita} className="space-y-3">
-                  <Input
-                    label="Descrição"
-                    value={novaReceita.descricao}
-                    onChange={(e) =>
-                      setNovaReceita((prev) => ({
-                        ...prev,
-                        descricao: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-
-                  <Input
-                    label="Valor"
-                    type="number"
-                    step="0.01"
-                    value={novaReceita.valor}
-                    onChange={(e) =>
-                      setNovaReceita((prev) => ({
-                        ...prev,
-                        valor: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-
-                  <Select
-                    label="Tipo"
-                    value={novaReceita.tipo}
-                    onChange={(e) =>
-                      setNovaReceita((prev) => ({
-                        ...prev,
-                        tipo: e.target.value,
-                      }))
-                    }
-                    options={[
-                      { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
-                      { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
-                    ]}
-                  />
-
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                    <Button
-                      type="submit"
-                      variant="success"
-                      size="small"
-                      className="flex-1"
-                    >
-                      Adicionar
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="small"
-                      onClick={() => setShowReceitaForm(false)}
-                      className="flex-1"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {editandoReceita && (
-              <div className="mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
-                  Editando Receita
-                </h3>
-                <ReceitaForm
-                  onSubmit={handleEditarReceita}
-                  onCancel={() => setEditandoReceita(null)}
-                  onDelete={handleExcluirReceita}
-                  initialData={editandoReceita}
-                />
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {quinzenaAtual.receitas?.map((receita) => (
-                <div
-                  key={receita.id}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                >
-                  <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-800 text-sm sm:text-base truncate">
-                        {receita.descricao}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {receita.tipo === 'fixa' ? 'Fixa' : 'Variável'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1 sm:space-x-2 ml-2">
-                    <p className="text-green-600 font-semibold text-sm sm:text-base whitespace-nowrap">
-                      {formatCurrency(receita.valor)}
-                    </p>
-                    <div className="flex space-x-1">
-                      <button
-                        className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                        onClick={() => setEditandoReceita(receita)}
-                        title="Editar receita"
-                      >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </button>
-                      <button
-                        className="p-1 sm:p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        onClick={() => handleExcluirReceita(receita)}
-                        title="Excluir receita"
-                      >
-                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {(!quinzenaAtual.receitas ||
-                quinzenaAtual.receitas.length === 0) && (
-                <div className="text-center py-6 text-gray-500 text-sm sm:text-base">
-                  <p>Nenhuma receita cadastrada</p>
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Despesas */}
-        <div className="space-y-6">
-          <Card>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center sm:text-left">
-                Despesas
-              </h2>
-              <Button
-                onClick={() => setShowDespesaForm(!showDespesaForm)}
-                icon={Plus}
-                variant="danger"
-                size="small"
-                className="w-full sm:w-auto"
-              >
-                <span className="sm:inline">Nova Despesa</span>
-              </Button>
-            </div>
-
-            {showDespesaForm && (
-              <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg border">
-                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
-                  Nova Despesa
-                </h3>
-                <DespesaForm
-                  onSubmit={handleAdicionarDespesa}
-                  onCancel={() => setShowDespesaForm(false)}
-                />
-              </div>
-            )}
-
-            {editandoDespesa && (
-              <div className="mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">
-                  Editando Despesa
-                </h3>
-                <DespesaForm
-                  onSubmit={handleEditarDespesa}
-                  onCancel={() => setEditandoDespesa(null)}
-                  onDelete={handleExcluirDespesa}
-                  initialData={editandoDespesa}
-                />
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {quinzenaAtual.parcelas?.map((parcela) => (
-                <div
-                  key={parcela.id}
-                  className={`p-3 sm:p-4 rounded-lg hover:bg-opacity-80 transition-colors ${
-                    parcela.pago
-                      ? 'bg-green-50 border border-green-200'
-                      : 'bg-red-50 border border-red-200'
-                  }`}
-                >
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-gray-800 text-sm sm:text-base truncate">
-                            {parcela.despesa?.descricao || 'Despesa sem nome'}
-                            {parcela.despesa?.parcelas > 1 && (
-                              <span className="text-xs sm:text-sm text-gray-600 ml-1 sm:ml-2 whitespace-nowrap">
-                                ({parcela.numeroParcela}/
-                                {parcela.despesa.parcelas})
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                            {parcela.despesa?.categoria || 'Sem categoria'} •
-                            Vence: {formatDate(parcela.dataVencimento)}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                          {parcela.despesa && !editandoDespesa && (
-                            <>
-                              <button
-                                className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                                onClick={() =>
-                                  setEditandoDespesa(parcela.despesa)
-                                }
-                                title="Editar despesa"
-                              >
-                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </button>
-                              <button
-                                className="p-1 sm:p-2 text-gray-400 hover:text-red-600 transition-colors"
-                                onClick={() =>
-                                  handleExcluirDespesa(parcela.despesa)
-                                }
-                                title="Excluir despesa"
-                              >
-                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
+          <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border overflow-hidden">
+             {showReceitaForm && (
+                <div className="p-4 bg-gray-50 dark:bg-dark-border/30 border-b border-gray-100 dark:border-dark-border">
+                   <h3 className="text-sm font-semibold mb-3">Nova Receita</h3>
+                   <form onSubmit={handleAdicionarReceita} className="space-y-3">
+                      <Input
+                         label="Descrição"
+                         value={novaReceita.descricao}
+                         onChange={(e) => setNovaReceita(prev => ({ ...prev, descricao: e.target.value }))}
+                         required
+                         className="bg-white dark:bg-dark-card"
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                         <Input
+                            label="Valor"
+                            type="number"
+                            step="0.01"
+                            value={novaReceita.valor}
+                            onChange={(e) => setNovaReceita(prev => ({ ...prev, valor: e.target.value }))}
+                            required
+                            className="bg-white dark:bg-dark-card"
+                         />
+                         <Select
+                            label="Tipo"
+                            value={novaReceita.tipo}
+                            onChange={(e) => setNovaReceita(prev => ({ ...prev, tipo: e.target.value }))}
+                            options={[
+                               { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
+                               { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
+                            ]}
+                         />
                       </div>
-                    </div>
-
-                    <div className="text-right ml-2 flex flex-col items-end flex-shrink-0">
-                      <p
-                        className={`font-semibold text-sm sm:text-base whitespace-nowrap ${
-                          parcela.pago ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
-                        {formatCurrency(parcela.valorParcela)}
-                      </p>
-                      {!parcela.pago && (
-                        <Button
-                          onClick={() =>
-                            handleMarcarParcelaComoPaga(parcela.id)
-                          }
-                          icon={Check}
-                          variant="success"
-                          size="small"
-                          className="mt-1 text-xs"
-                        >
-                          <span className="sm:inline">Pagar</span>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {parcela.pago && (
-                    <div className="flex items-center space-x-1 text-green-600 text-xs sm:text-sm mt-2">
-                      <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Pago em {formatDate(parcela.dataPagamento)}</span>
-                    </div>
-                  )}
+                      <div className="flex justify-end gap-2 pt-2">
+                         <Button type="button" variant="ghost" size="small" onClick={() => setShowReceitaForm(false)}>Cancelar</Button>
+                         <Button type="submit" variant="success" size="small">Salvar</Button>
+                      </div>
+                   </form>
                 </div>
-              ))}
+             )}
 
-              {(!quinzenaAtual.parcelas ||
-                quinzenaAtual.parcelas.length === 0) && (
-                <div className="text-center py-6 text-gray-500 text-sm sm:text-base">
-                  <p>Nenhuma despesa cadastrada</p>
+             {editandoReceita && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/30">
+                   <ReceitaForm
+                      onSubmit={handleEditarReceita}
+                      onCancel={() => setEditandoReceita(null)}
+                      onDelete={handleExcluirReceita}
+                      initialData={editandoReceita}
+                   />
                 </div>
-              )}
+             )}
+
+             <div className="divide-y divide-gray-100 dark:divide-dark-border">
+                {quinzenaAtual.receitas?.length > 0 ? (
+                   quinzenaAtual.receitas.map((receita) => (
+                      <div key={receita.id} className="p-4 hover:bg-gray-50 dark:hover:bg-dark-border/30 transition-colors flex items-center justify-between group">
+                         <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{receita.descricao}</p>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-dark-border px-2 py-0.5 rounded-full inline-block mt-1">
+                               {receita.tipo === 'fixa' ? 'Fixa' : 'Variável'}
+                            </span>
+                         </div>
+                         <div className="text-right flex items-center gap-4">
+                            <span className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(receita.valor)}</span>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                               <button onClick={() => setEditandoReceita(receita)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                  <Edit className="h-4 w-4" />
+                               </button>
+                               <button onClick={() => handleExcluirReceita(receita)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                                  <Trash2 className="h-4 w-4" />
+                               </button>
+                            </div>
+                         </div>
+                      </div>
+                   ))
+                ) : (
+                   <div className="p-8 text-center text-gray-500 dark:text-gray-400">Nenhuma receita registrada</div>
+                )}
+             </div>
+          </div>
+        </section>
+
+        {/* Despesas Column */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+               <div className="h-2 w-2 rounded-full bg-red-500"></div>
+               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Despesas</h2>
             </div>
-          </Card>
-        </div>
+            <Button 
+               onClick={() => setShowDespesaForm(!showDespesaForm)} 
+               variant="secondary" 
+               size="small" 
+               icon={Plus}
+               className="!bg-red-50 !text-red-700 hover:!bg-red-100 dark:!bg-red-900/20 dark:!text-red-300"
+            >
+               Adicionar
+            </Button>
+          </div>
+
+          <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border overflow-hidden">
+             {showDespesaForm && (
+                <div className="p-4 bg-gray-50 dark:bg-dark-border/30 border-b border-gray-100 dark:border-dark-border">
+                   <h3 className="text-sm font-semibold mb-3">Nova Despesa</h3>
+                   <DespesaForm
+                      onSubmit={handleAdicionarDespesa}
+                      onCancel={() => setShowDespesaForm(false)}
+                   />
+                </div>
+             )}
+
+             {editandoDespesa && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/30">
+                   <DespesaForm
+                      onSubmit={handleEditarDespesa}
+                      onCancel={() => setEditandoDespesa(null)}
+                      onDelete={handleExcluirDespesa}
+                      initialData={editandoDespesa}
+                   />
+                </div>
+             )}
+
+             <div className="divide-y divide-gray-100 dark:divide-dark-border">
+                {quinzenaAtual.parcelas?.length > 0 ? (
+                   quinzenaAtual.parcelas.map((parcela) => (
+                      <div key={parcela.id} className="p-4 hover:bg-gray-50 dark:hover:bg-dark-border/30 transition-colors flex items-start justify-between group">
+                         <div className="flex items-start gap-3">
+                            <div className={`mt-1 h-2 w-2 rounded-full ${parcela.pago ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            <div>
+                               <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {parcela.despesa?.descricao || 'Despesa'}
+                                  {parcela.despesa?.parcelas > 1 && (
+                                     <span className="text-xs text-gray-500 ml-1">({parcela.numeroParcela}/{parcela.despesa.parcelas})</span>
+                                  )}
+                               </p>
+                               <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-dark-border px-2 py-0.5 rounded-full">
+                                     {parcela.despesa?.categoria || 'Geral'}
+                                  </span>
+                                  <span className={`text-xs ${new Date(parcela.dataVencimento) < new Date() && !parcela.pago ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                                     Vence {formatDate(parcela.dataVencimento)}
+                                  </span>
+                               </div>
+                            </div>
+                         </div>
+                         
+                         <div className="text-right">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{formatCurrency(parcela.valorParcela)}</p>
+                            
+                            {!parcela.pago ? (
+                               <div className="flex justify-end gap-2 items-center">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 mr-2">
+                                     <button onClick={() => setEditandoDespesa(parcela.despesa)} className="p-1 text-gray-400 hover:text-blue-600">
+                                        <Edit className="h-4 w-4" />
+                                     </button>
+                                     <button onClick={() => handleExcluirDespesa(parcela.despesa)} className="p-1 text-gray-400 hover:text-red-600">
+                                        <Trash2 className="h-4 w-4" />
+                                     </button>
+                                  </div>
+                                  <button 
+                                     onClick={() => handleMarcarParcelaComoPaga(parcela.id)}
+                                     className="text-xs bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-lg transition-colors font-medium"
+                                  >
+                                     Pagar
+                                  </button>
+                               </div>
+                            ) : (
+                               <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/10 px-2 py-1 rounded-lg">
+                                  <Check className="h-3 w-3" />
+                                  Pago
+                               </div>
+                            )}
+                         </div>
+                      </div>
+                   ))
+                ) : (
+                   <div className="p-8 text-center text-gray-500 dark:text-gray-400">Nenhuma despesa registrada</div>
+                )}
+             </div>
+          </div>
+        </section>
       </div>
     </div>
   );

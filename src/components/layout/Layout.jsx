@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from './Navbar';
+import AppShell from './AppShell';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import ErrorAlert from '../ui/ErrorAlert';
 import { useFinanceContext } from '../../contexts/FinanceContext';
@@ -12,12 +12,15 @@ const Layout = ({ children }) => {
   const loading = financeLoading || authLoading;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <AppShell>
       {error && <ErrorAlert message={error} onClose={limparError} />}
-      {loading && <LoadingSpinner />}
-      <main className="container mx-auto px-4 py-8">{children}</main>
-    </div>
+      {loading && (
+        <div className="fixed inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {children}
+    </AppShell>
   );
 };
 

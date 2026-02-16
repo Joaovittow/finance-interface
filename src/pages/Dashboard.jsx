@@ -1,22 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
+  Eye,
+  EyeOff,
   Plus,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
+  ArrowUpRight,
+  ArrowDownLeft,
+  PieChart
 } from 'lucide-react';
 import { useFinanceContext } from '../contexts/FinanceContext';
 import { formatCurrency, formatMonthYear } from '../utils/formatters';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import CriarMesModal from '../components/mes/CriarMesModal';
-import { calcularMesAtivo, mesEhAtivo } from '../utils/dateUtils';
+import { PieChart as CustomPieChart } from '../components/charts';
+import { calcularMesAtivo } from '../utils/dateUtils';
 
 const Dashboard = () => {
   const { meses, loading, carregarMeses } = useFinanceContext();
   const [modalAberto, setModalAberto] = useState(false);
+  const [saldoVisivel, setSaldoVisivel] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     carregarMeses();
@@ -44,137 +47,110 @@ const Dashboard = () => {
     ) || 0;
 
   const saldoAtual = totalReceitas - totalDespesas;
+  
+  // Dados para o gráfico simplificado
+  const gastosPorCategoria = {};
+  mesAtual?.quinzenas?.forEach(q => {
+     q.parcelas?.forEach(p => {
+        if(p.despesa?.categoria) {
+           gastosPorCategoria[p.despesa.categoria] = (gastosPorCategoria[p.despesa.categoria] || 0) + (p.valorPago || p.valorParcela);
+        }
+     });
+  });
+  
+  const dadosGrafico = Object.entries(gastosPorCategoria)
+     .map(([label, value]) => ({ label, value }))
+     .sort((a,b) => b.value - a.value)
+     .slice(0, 5); // Top 5
+     
+  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
 
   if (loading && meses?.length === 0) {
     return (
-      <div className="flex justify-center items-center min-h-64 text-gray-500">
-        Carregando...
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 px-3 sm:px-6 md:px-10 py-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div className="text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-            Dashboard Financeiro
-          </h1>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Visão geral do seu controle financeiro quinzenal
-          </p>
-        </div>
-        <Button
-          onClick={() => setModalAberto(true)}
-          icon={Plus}
-          variant="primary"
-          className="w-full sm:w-auto"
-        >
-          Novo Mês
-        </Button>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+      
+      {/* Header com Saldo e Visibilidade */}
+      <div className="flex flex-col gap-1">
+         <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <span className="text-sm font-medium">Saldo em conta</span>
+            <button onClick={() => setSaldoVisivel(!saldoVisivel)} className="hover:text-brand-600 transition-colors">
+               {saldoVisivel ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            </button>
+         </div>
+         <div className="h-10 flex items-center">
+            {saldoVisivel ? (
+               <h1 className={`text-3xl font-bold tracking-tight ${saldoAtual >= 0 ? 'text-gray-900 dark:text-gray-100' : 'text-red-600'}`}>
+                  {formatCurrency(saldoAtual)}
+               </h1>
+            ) : (
+               <div className="h-8 w-40 bg-gray-200 dark:bg-dark-border/50 rounded animate-pulse" />
+            )}
+         </div>
       </div>
 
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-        <Card>
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-700">Saldo Atual</h3>
-            <DollarSign
-              className={`h-4 sm:h-5 ${saldoAtual >= 0 ? 'text-green-500' : 'text-red-500'}`}
-            />
-          </div>
-          <p
-            className={`text-xl sm:text-2xl font-bold ${saldoAtual >= 0 ? 'text-green-600' : 'text-red-600'}`}
-          >
-            {formatCurrency(saldoAtual)}
-          </p>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            {mesAtual ? formatMonthYear(mesAtual.mes, mesAtual.ano) : '-'}
-          </p>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-700">Receitas</h3>
-            <TrendingUp className="h-4 sm:h-5 text-green-500" />
-          </div>
-          <p className="text-xl sm:text-2xl font-bold text-green-600">
-            {formatCurrency(totalReceitas)}
-          </p>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-700">Despesas</h3>
-            <TrendingDown className="h-4 sm:h-5 text-red-500" />
-          </div>
-          <p className="text-xl sm:text-2xl font-bold text-red-600">
-            {formatCurrency(totalDespesas)}
-          </p>
-        </Card>
+      {/* Cards de Resumo Rápido */}
+      <div className="grid grid-cols-2 gap-4">
+         <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/20 shadow-none">
+            <div className="flex items-center gap-2 mb-1">
+               <div className="p-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <ArrowDownLeft className="h-4 w-4 text-green-600 dark:text-green-400" />
+               </div>
+               <span className="text-xs font-semibold text-green-700 dark:text-green-400 uppercase">Receitas</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
+               {formatCurrency(totalReceitas)}
+            </p>
+         </Card>
+         
+         <Card className="bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/20 shadow-none">
+            <div className="flex items-center gap-2 mb-1">
+               <div className="p-1 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                  <ArrowUpRight className="h-4 w-4 text-red-600 dark:text-red-400" />
+               </div>
+               <span className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase">Despesas</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
+               {formatCurrency(totalDespesas)}
+            </p>
+         </Card>
       </div>
 
-      {/* Meses Recentes */}
-      <Card>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-            Meses Recentes
-          </h2>
-          <Link
-            to="/meses"
-            className="text-blue-600 hover:text-blue-700 text-sm sm:text-base font-medium"
-          >
-            Ver todos
-          </Link>
-        </div>
+       {/* Ações e Atalhos */}
+       <div className="flex flex-col gap-4">
+         <button 
+           onClick={() => setModalAberto(true)}
+           className="flex items-center justify-center gap-2 w-full p-4 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white rounded-2xl shadow-lg transition-all transform active:scale-[0.98]"
+         >
+           <Plus className="h-5 w-5" />
+           <span className="font-semibold">Iniciar Novo Mês</span>
+         </button>
+       </div>
 
-        {!meses || meses.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Calendar className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm sm:text-base">Nenhum mês cadastrado.</p>
-            <Button
-              onClick={() => setModalAberto(true)}
-              variant="primary"
-              className="mt-3 w-full sm:w-auto"
-            >
-              Criar Primeiro Mês
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {meses.slice(0, 5).map((mes) => {
-              // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-              const ativo = mesEhAtivo(mes.mes, mes.ano);
-              return (
-                <div
-                  key={mes.id}
-                  className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-100"
-                >
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
-                      {formatMonthYear(mes.mes, mes.ano)}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-600">
-                      {mes.quinzenas?.length || 0} quinzenas
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-                    {mes.quinzenas?.map((q) => (
-                      <Link
-                        key={q.id}
-                        to={`/quinzena/${q.id}`}
-                        className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium hover:bg-blue-200 transition"
-                      >
-                        {q.tipo === 'primeira' ? 'Dia 15' : 'Dia 30'}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* Resumo de Gastos (Full Width) */}
+      <Card className="flex flex-col shadow-sm border-none bg-white dark:bg-dark-card min-h-[300px]" hover>
+         <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100">Despesas por Categoria</h3>
+            <Link to="/relatorios" className="text-xs font-medium text-brand-600 hover:text-brand-700">Ver detalhes</Link>
+         </div>
+         
+         {dadosGrafico.length > 0 ? (
+            <div className="flex items-center justify-center py-4 flex-1">
+               <CustomPieChart data={dadosGrafico} colors={colors} width={220} height={220} />
+            </div>
+         ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-8 text-gray-400">
+               <PieChart className="h-12 w-12 mb-3 opacity-20" />
+               <span className="text-sm">Nenhuma despesa registrada neste mês.</span>
+               <span className="text-xs text-gray-500 mt-1">Cadastre despesas nas quinzenas para visualizar.</span>
+            </div>
+         )}
       </Card>
 
       <CriarMesModal

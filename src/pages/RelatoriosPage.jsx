@@ -4,6 +4,7 @@ import Card from '../components/ui/Card';
 import { useFinanceContext } from '../contexts/FinanceContext';
 import { formatCurrency, formatMonthYear } from '../utils/formatters';
 import { calcularMesAtivo, mesEhAtivo } from '../utils/dateUtils';
+import { ArrowUpRight, ArrowDownLeft, Calendar, Info, BarChart3 } from 'lucide-react';
 
 const RelatoriosPage = () => {
   const { meses } = useFinanceContext();
@@ -26,7 +27,6 @@ const RelatoriosPage = () => {
     }
   }, [meses]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (mesSelecionado) {
       gerarRelatorio(mesSelecionado);
@@ -35,6 +35,7 @@ const RelatoriosPage = () => {
 
   const gerarRelatorio = (mesId) => {
     setLoading(true);
+    // Simulating calculation delay for smooth transition
     setTimeout(() => {
       if (!meses.length) {
         setDadosRelatorio(null);
@@ -67,7 +68,7 @@ const RelatoriosPage = () => {
           label: categoria.charAt(0).toUpperCase() + categoria.slice(1),
           value: valor,
         }),
-      );
+      ).sort((a,b) => b.value - a.value);
 
       const dadosQuinzenas = mes.quinzenas.map((quinzena) => {
         const totalReceitas = quinzena.receitas.reduce(
@@ -81,7 +82,7 @@ const RelatoriosPage = () => {
             0,
           );
         return {
-          label: quinzena.tipo === 'primeira' ? 'Dia 15' : 'Dia 30',
+          label: quinzena.tipo === 'primeira' ? '1ª Quiz.' : '2ª Quiz.',
           receitas: totalReceitas,
           despesas: totalDespesas,
         };
@@ -122,307 +123,174 @@ const RelatoriosPage = () => {
         },
       });
       setLoading(false);
-    }, 500);
+    }, 300);
   };
 
   const colors = [
-    '#3B82F6',
-    '#EF4444',
-    '#10B981',
-    '#F59E0B',
-    '#8B5CF6',
-    '#EC4899',
-    '#06B6D4',
+    '#8B5CF6', // Purple
+    '#EC4899', // Pink
+    '#10B981', // Emerald
+    '#F59E0B', // Amber
+    '#3B82F6', // Blue
+    '#EF4444', // Red
+    '#06B6D4', // Cyan
   ];
 
   if (!meses.length) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="text-gray-500 text-center px-3">
-          Nenhum mês cadastrado para gerar relatórios.
+      <div className="flex flex-col justify-center items-center min-h-[50vh] text-center p-6">
+        <div className="bg-gray-100 dark:bg-dark-card p-4 rounded-full mb-4">
+           <BarChart3 className="h-8 w-8 text-gray-400" />
         </div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Sem dados para relatórios</h3>
+        <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
+           Cadastre meses e transações para visualizar suas estatísticas financeiras.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 px-3 sm:px-6 lg:px-10 py-4">
-      {/* Título */}
-      <div className="text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-          Relatórios
-        </h1>
-        <p className="text-gray-600 mt-1 text-sm sm:text-base">
-          Análise detalhada das suas finanças
-        </p>
+    <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Header & Filter */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+        <div>
+           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Relatórios</h1>
+           <p className="text-gray-500 dark:text-gray-400">Análise detalhada de gastos e receitas</p>
+        </div>
+
+        <div className="w-full md:w-64">
+           <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <select
+                 value={mesSelecionado}
+                 onChange={(e) => setMesSelecionado(e.target.value)}
+                 className="w-full pl-10 pr-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-gray-900 dark:text-gray-100 appearance-none cursor-pointer"
+                 disabled={loading}
+              >
+                 {meses.map((mes) => (
+                    <option key={mes.id} value={mes.id}>
+                       {formatMonthYear(mes.mes, mes.ano)} {mesEhAtivo(mes.mes, mes.ano) ? '(Atual)' : ''}
+                    </option>
+                 ))}
+              </select>
+           </div>
+        </div>
       </div>
 
-      {/* Card de informação */}
-      <Card>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm sm:text-base">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-blue-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-medium text-blue-800">Período Ativo</h3>
-              <p className="text-blue-700 mt-1">
-                O mês ativo é aquele entre <strong>dia 11</strong> e{' '}
-                <strong>dia 10 do próximo mês</strong>.
-              </p>
-            </div>
-          </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
-      </Card>
-
-      {/* Selecionar Mês */}
-      <Card>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-              Selecionar Mês
-            </h2>
-            <p className="text-sm text-gray-600">
-              Escolha o período para visualizar os relatórios
-            </p>
-          </div>
-          <div className="w-full sm:max-w-xs">
-            <select
-              value={mesSelecionado}
-              onChange={(e) => setMesSelecionado(e.target.value)}
-              className="w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm sm:text-base"
-              disabled={loading}
-            >
-              <option value="">Selecione um mês</option>
-              {meses.map((mes) => {
-                const ehAtivo = mesEhAtivo(mes.mes, mes.ano);
-                return (
-                  <option key={mes.id} value={mes.id}>
-                    {formatMonthYear(mes.mes, mes.ano)} {ehAtivo && '(Ativo)'}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        </div>
-      </Card>
-
-      {loading && (
-        <div className="flex justify-center items-center py-8 text-gray-500">
-          Gerando relatório...
-        </div>
-      )}
-
-      {!mesSelecionado && !loading && (
-        <Card>
-          <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
-            Selecione um mês para visualizar os relatórios
-          </div>
-        </Card>
-      )}
-
-      {dadosRelatorio && mesSelecionado && !loading && (
+      ) : dadosRelatorio && mesSelecionado ? (
         <>
-          {/* Cabeçalho */}
-          <Card>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                  Relatório - {dadosRelatorio.mes}
-                </h2>
-                <p className="text-gray-600 text-sm sm:text-base">
-                  Período completo do mês selecionado
-                </p>
-              </div>
-              {mesEhAtivo(
-                dadosRelatorio.mesObj.mes,
-                dadosRelatorio.mesObj.ano,
-              ) && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 self-start sm:self-auto">
-                  Mês Ativo
-                </span>
-              )}
-            </div>
-          </Card>
-
-          {/* Cards de resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <Card>
-              <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-1">
-                Total Receitas
-              </h3>
-              <p className="text-xl sm:text-2xl font-bold text-green-600">
-                {formatCurrency(dadosRelatorio.resumo.totalReceitas)}
-              </p>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="bg-white dark:bg-dark-card border-none shadow-soft">
+               <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                     <ArrowDownLeft className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Receitas</span>
+               </div>
+               <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(dadosRelatorio.resumo.totalReceitas)}</p>
             </Card>
 
-            <Card>
-              <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-1">
-                Total Despesas
-              </h3>
-              <p className="text-xl sm:text-2xl font-bold text-red-600">
-                {formatCurrency(dadosRelatorio.resumo.totalDespesas)}
-              </p>
+            <Card className="bg-white dark:bg-dark-card border-none shadow-soft">
+               <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                     <ArrowUpRight className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Despesas</span>
+               </div>
+               <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(dadosRelatorio.resumo.totalDespesas)}</p>
             </Card>
 
-            <Card>
-              <h3 className="text-sm sm:text-lg font-semibold text-gray-700 mb-1">
-                Saldo Final
-              </h3>
-              <p
-                className={`text-xl sm:text-2xl font-bold ${
-                  dadosRelatorio.resumo.saldo >= 0
-                    ? 'text-green-600'
-                    : 'text-red-600'
-                }`}
-              >
-                {formatCurrency(dadosRelatorio.resumo.saldo)}
-              </p>
+            <Card className={`border-none shadow-soft ${dadosRelatorio.resumo.saldo >= 0 ? 'bg-brand-600' : 'bg-red-600'}`}>
+               <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium text-white/80 uppercase">Saldo Final</span>
+               </div>
+               <p className="text-2xl font-bold text-white">{formatCurrency(dadosRelatorio.resumo.saldo)}</p>
             </Card>
           </div>
 
-          {/* Gráficos */}
+          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
-                Gastos por Categoria
-              </h2>
-              {dadosRelatorio.categorias.length > 0 ? (
-                <PieChart data={dadosRelatorio.categorias} colors={colors} />
-              ) : (
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  Nenhuma despesa cadastrada
-                </div>
-              )}
+            <Card className="bg-white dark:bg-dark-card border-none shadow-soft flex flex-col items-center">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 self-start w-full border-b border-gray-100 dark:border-dark-border pb-2">Gastos por Categoria</h3>
+              <div className="w-full flex-1 flex items-center justify-center">
+                 <PieChart data={dadosRelatorio.categorias} colors={colors} />
+              </div>
             </Card>
 
-            <Card>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
-                Comparativo Quinzenas
-              </h2>
-              {dadosRelatorio.quinzenas.length > 0 ? (
-                <div className="space-y-5">
-                  <BarChart
-                    data={dadosRelatorio.quinzenas.map((q) => ({
-                      label: q.label,
-                      value: q.receitas,
-                    }))}
-                    colors={['#10B981']}
-                    height={160}
-                  />
-                  <p className="text-sm text-center text-gray-600">
-                    Receitas por Quinzena
-                  </p>
-                  <BarChart
-                    data={dadosRelatorio.quinzenas.map((q) => ({
-                      label: q.label,
-                      value: q.despesas,
-                    }))}
-                    colors={['#EF4444']}
-                    height={160}
-                  />
-                  <p className="text-sm text-center text-gray-600">
-                    Despesas por Quinzena
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  Nenhum dado disponível
-                </div>
-              )}
+            <Card className="bg-white dark:bg-dark-card border-none shadow-soft flex flex-col">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 border-b border-gray-100 dark:border-dark-border pb-2">Balanço Quinzenal</h3>
+              
+              <div className="flex-1 flex flex-col justify-center space-y-8">
+                 <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 pl-1">Receitas</h4>
+                    <BarChart
+                       data={dadosRelatorio.quinzenas.map((q) => ({ label: q.label, value: q.receitas }))}
+                       colors={['#10B981', '#34D399']}
+                       height={100}
+                    />
+                 </div>
+                 
+                 <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 pl-1">Despesas Pagas</h4>
+                    <BarChart
+                       data={dadosRelatorio.quinzenas.map((q) => ({ label: q.label, value: q.despesas }))}
+                       colors={['#EF4444', '#F87171']}
+                       height={100}
+                    />
+                 </div>
+              </div>
             </Card>
           </div>
 
-          {/* Tabela detalhada */}
-          <Card>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
-              Detalhamento por Categoria
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm sm:text-base">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700">
-                      Categoria
-                    </th>
-                    <th className="text-right py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700">
-                      Valor
-                    </th>
-                    <th className="text-right py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700">
-                      %
-                    </th>
+          {/* Table */}
+          <Card className="bg-white dark:bg-dark-card border-none shadow-soft overflow-hidden">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 px-2">Detalhamento</h3>
+            <div className="overflow-x-auto -mx-6">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 dark:bg-dark-border/30 text-gray-500 dark:text-gray-400 font-medium">
+                  <tr>
+                    <th className="py-3 px-6">Categoria</th>
+                    <th className="py-3 px-6 text-right">Valor</th>
+                    <th className="py-3 px-6 text-right">%</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {dadosRelatorio.categorias.map((categoria, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-gray-800">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded"
-                            style={{
-                              backgroundColor: colors[index % colors.length],
-                            }}
-                          />
-                          <span>{categoria.label}</span>
-                        </div>
+                <tbody className="divide-y divide-gray-100 dark:divide-dark-border">
+                  {dadosRelatorio.categorias.map((cat, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-dark-border/10 transition-colors">
+                      <td className="py-3 px-6 font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                         <div className="w-2 h-8 rounded-r" style={{ backgroundColor: colors[idx % colors.length] }}></div>
+                         {cat.label}
                       </td>
-                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right font-medium text-gray-800">
-                        {formatCurrency(categoria.value)}
+                      <td className="py-3 px-6 text-right text-gray-700 dark:text-gray-300">
+                         {formatCurrency(cat.value)}
                       </td>
-                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right text-gray-600">
-                        {dadosRelatorio.resumo.totalDespesas > 0
-                          ? (
-                              (categoria.value /
-                                dadosRelatorio.resumo.totalDespesas) *
-                              100
-                            ).toFixed(1)
-                          : 0}
-                        %
+                      <td className="py-3 px-6 text-right text-gray-500 dark:text-gray-400">
+                         {((cat.value / dadosRelatorio.resumo.totalDespesas) * 100).toFixed(1)}%
                       </td>
                     </tr>
                   ))}
                   {dadosRelatorio.categorias.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="3"
-                        className="py-8 text-center text-gray-500"
-                      >
-                        Nenhuma despesa encontrada
-                      </td>
-                    </tr>
+                     <tr>
+                        <td colSpan={3} className="py-8 text-center text-gray-500">Nenhuma despesa no período</td>
+                     </tr>
                   )}
                 </tbody>
-                {dadosRelatorio.categorias.length > 0 && (
-                  <tfoot>
-                    <tr className="bg-gray-50 font-semibold">
-                      <td className="py-2 px-3 sm:py-3 sm:px-4">Total</td>
-                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right">
-                        {formatCurrency(dadosRelatorio.resumo.totalDespesas)}
-                      </td>
-                      <td className="py-2 px-3 sm:py-3 sm:px-4 text-right">
-                        100%
-                      </td>
-                    </tr>
-                  </tfoot>
-                )}
               </table>
             </div>
           </Card>
         </>
+      ) : (
+        <div className="text-center py-20 bg-white dark:bg-dark-card rounded-2xl border border-dashed border-gray-300 dark:border-dark-border">
+          <Info className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400">Selecione um mês para visualizar o relatório</p>
+        </div>
       )}
     </div>
   );

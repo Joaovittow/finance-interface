@@ -4,15 +4,11 @@ import {
   Plus,
   Check,
   DollarSign,
-  TrendingUp,
-  TrendingDown,
   Edit,
   Trash2,
   ChevronLeft,
   ArrowUpRight,
   ArrowDownLeft,
-  CalendarCheck,
-  AlertCircle
 } from 'lucide-react';
 import { useFinanceContext } from '../contexts/FinanceContext';
 import {
@@ -20,20 +16,18 @@ import {
   formatDate,
   formatMonthYear,
 } from '../utils/formatters';
-import { CATEGORIAS, TIPOS_RECEITA } from '../constants/apiEndpoints';
-import Card from '../components/ui/Card';
+import { receitaContaNoMes } from '../utils/dateUtils';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Select from '../components/ui/Select';
+import Modal from '../components/ui/Modal';
 import DespesaForm from '../components/forms/DespesaForm';
 import ReceitaForm from '../components/forms/ReceitaForm';
 
-const QuinzenaPage = () => {
+const MesDetalhePage = () => {
   const { id } = useParams();
   const {
-    quinzenaAtual,
+    mesAtual,
     loading,
-    carregarQuinzena,
+    carregarMes,
     adicionarReceita,
     adicionarDespesa,
     marcarParcelaComoPaga,
@@ -43,33 +37,21 @@ const QuinzenaPage = () => {
     excluirDespesa,
   } = useFinanceContext();
 
-  const [showReceitaForm, setShowReceitaForm] = useState(false);
-  const [showDespesaForm, setShowDespesaForm] = useState(false);
+  const [showReceitaModal, setShowReceitaModal] = useState(false);
+  const [showDespesaModal, setShowDespesaModal] = useState(false);
   const [editandoReceita, setEditandoReceita] = useState(null);
   const [editandoDespesa, setEditandoDespesa] = useState(null);
 
-  const [novaReceita, setNovaReceita] = useState({
-    descricao: '',
-    valor: '',
-    tipo: TIPOS_RECEITA.VARIAVEL,
-  });
-
   useEffect(() => {
     if (id) {
-      carregarQuinzena(id);
+      carregarMes(id);
     }
-  }, [id, carregarQuinzena]);
+  }, [id, carregarMes]);
 
-  const handleAdicionarReceita = async (e) => {
-    e.preventDefault();
+  const handleAdicionarReceita = async (receitaData) => {
     try {
-      await adicionarReceita(id, novaReceita);
-      setNovaReceita({
-        descricao: '',
-        valor: '',
-        tipo: TIPOS_RECEITA.VARIAVEL,
-      });
-      setShowReceitaForm(false);
+      await adicionarReceita(id, receitaData);
+      setShowReceitaModal(false);
     } catch (error) {
       // Error handled by context
     }
@@ -78,8 +60,8 @@ const QuinzenaPage = () => {
   const handleAdicionarDespesa = async (despesaData) => {
     try {
       await adicionarDespesa(id, despesaData);
-      setShowDespesaForm(false);
-      await carregarQuinzena(id);
+      setShowDespesaModal(false);
+      await carregarMes(id);
     } catch (error) {
       console.error('Erro ao adicionar despesa:', error);
     }
@@ -97,6 +79,7 @@ const QuinzenaPage = () => {
   const handleExcluirReceita = async (receita) => {
     try {
       await excluirReceita(receita.id);
+      setEditandoReceita(null);
     } catch (error) {
       console.error('Erro ao excluir receita:', error);
     }
@@ -104,8 +87,7 @@ const QuinzenaPage = () => {
 
   const handleEditarDespesa = async (despesaData) => {
     try {
-      // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-      const resultado = await atualizarDespesa(editandoDespesa.id, despesaData);
+      await atualizarDespesa(editandoDespesa.id, despesaData);
       setEditandoDespesa(null);
     } catch (error) {
       // Error handled by context
@@ -115,6 +97,7 @@ const QuinzenaPage = () => {
   const handleExcluirDespesa = async (despesa) => {
     try {
       await excluirDespesa(despesa.id);
+      setEditandoDespesa(null);
     } catch (error) {
       console.error('Erro ao excluir despesa:', error);
     }
@@ -128,7 +111,7 @@ const QuinzenaPage = () => {
     }
   };
 
-  if (loading && !quinzenaAtual) {
+  if (loading && !mesAtual) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
@@ -136,19 +119,22 @@ const QuinzenaPage = () => {
     );
   }
 
-  if (!quinzenaAtual) {
+  if (!mesAtual) {
     return (
       <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-        <p>Quinzena não encontrada</p>
+        <p>Mês não encontrado</p>
         <Link to="/meses" className="text-brand-600 hover:underline mt-2 inline-block">Voltar para Meses</Link>
       </div>
     );
   }
 
-  const { calculos } = quinzenaAtual;
+  const { calculos } = mesAtual;
+
+  const isReceitaFutura = (receita) =>
+    !!receita.dataDeposito && !receitaContaNoMes(receita);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <Link to="/meses" className="flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors w-fit">
@@ -159,25 +145,27 @@ const QuinzenaPage = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
           <div>
              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {quinzenaAtual.tipo === 'primeira' ? '1ª Quinzena' : '2ª Quinzena'}
+                {formatMonthYear(mesAtual.mes, mesAtual.ano)}
              </h1>
-             <p className="text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-2">
-                <CalendarCheck className="h-4 w-4" />
-                {quinzenaAtual.mes && formatMonthYear(quinzenaAtual.mes.mes, quinzenaAtual.mes.ano)}
-             </p>
+             {mesAtual.saldoAnterior !== undefined && mesAtual.saldoAnterior !== 0 && (
+               <p className="text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2 text-sm">
+                  <DollarSign className="h-4 w-4" />
+                  Saldo mês anterior: <span className={`font-semibold ${mesAtual.saldoAnterior >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(mesAtual.saldoAnterior)}</span>
+               </p>
+             )}
           </div>
           
           <div className="bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-xl border border-brand-100 dark:border-brand-900/30">
-             <span className="text-xs text-brand-600 dark:text-brand-400 uppercase font-semibold tracking-wider">Saldo Disponível</span>
-             <p className={`text-xl font-bold ${calculos.saldoDisponivel >= 0 ? 'text-brand-700 dark:text-brand-300' : 'text-red-600 dark:text-red-400'}`}>
-                {formatCurrency(calculos.saldoDisponivel)}
+             <span className="text-xs text-brand-600 dark:text-brand-400 uppercase font-semibold tracking-wider">Saldo do Mês</span>
+             <p className={`text-xl font-bold ${calculos.saldo >= 0 ? 'text-brand-700 dark:text-brand-300' : 'text-red-600 dark:text-red-400'}`}>
+                {formatCurrency(calculos.saldo)}
              </p>
           </div>
         </div>
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-soft border border-gray-100 dark:border-dark-border">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -207,16 +195,6 @@ const QuinzenaPage = () => {
           </div>
           <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(calculos.totalDespesasPagas)}</p>
         </div>
-        
-        <div className="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-soft border border-gray-100 dark:border-dark-border">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
-               <DollarSign className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            </div>
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Anterior</span>
-          </div>
-          <p className={`text-lg font-bold ${quinzenaAtual.saldoAnterior >= 0 ? 'text-gray-900 dark:text-gray-100' : 'text-red-600'}`}>{formatCurrency(quinzenaAtual.saldoAnterior)}</p>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -228,7 +206,7 @@ const QuinzenaPage = () => {
                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Receitas</h2>
             </div>
             <Button 
-               onClick={() => setShowReceitaForm(!showReceitaForm)} 
+               onClick={() => setShowReceitaModal(true)} 
                variant="secondary" 
                size="small" 
                icon={Plus}
@@ -239,77 +217,42 @@ const QuinzenaPage = () => {
           </div>
 
           <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border overflow-hidden">
-             {showReceitaForm && (
-                <div className="p-4 bg-gray-50 dark:bg-dark-border/30 border-b border-gray-100 dark:border-dark-border">
-                   <h3 className="text-sm font-semibold mb-3">Nova Receita</h3>
-                   <form onSubmit={handleAdicionarReceita} className="space-y-3">
-                      <Input
-                         label="Descrição"
-                         value={novaReceita.descricao}
-                         onChange={(e) => setNovaReceita(prev => ({ ...prev, descricao: e.target.value }))}
-                         required
-                         className="bg-white dark:bg-dark-card"
-                      />
-                      <div className="grid grid-cols-2 gap-3">
-                         <Input
-                            label="Valor"
-                            type="number"
-                            step="0.01"
-                            value={novaReceita.valor}
-                            onChange={(e) => setNovaReceita(prev => ({ ...prev, valor: e.target.value }))}
-                            required
-                            className="bg-white dark:bg-dark-card"
-                         />
-                         <Select
-                            label="Tipo"
-                            value={novaReceita.tipo}
-                            onChange={(e) => setNovaReceita(prev => ({ ...prev, tipo: e.target.value }))}
-                            options={[
-                               { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
-                               { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
-                            ]}
-                         />
-                      </div>
-                      <div className="flex justify-end gap-2 pt-2">
-                         <Button type="button" variant="ghost" size="small" onClick={() => setShowReceitaForm(false)}>Cancelar</Button>
-                         <Button type="submit" variant="success" size="small">Salvar</Button>
-                      </div>
-                   </form>
-                </div>
-             )}
-
-             {editandoReceita && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/30">
-                   <ReceitaForm
-                      onSubmit={handleEditarReceita}
-                      onCancel={() => setEditandoReceita(null)}
-                      onDelete={handleExcluirReceita}
-                      initialData={editandoReceita}
-                   />
-                </div>
-             )}
-
              <div className="divide-y divide-gray-100 dark:divide-dark-border">
-                {quinzenaAtual.receitas?.length > 0 ? (
-                   quinzenaAtual.receitas.map((receita) => (
-                      <div key={receita.id} className="p-4 hover:bg-gray-50 dark:hover:bg-dark-border/30 transition-colors flex items-center justify-between group">
-                         <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{receita.descricao}</p>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-dark-border px-2 py-0.5 rounded-full inline-block mt-1">
-                               {receita.tipo === 'fixa' ? 'Fixa' : 'Variável'}
+                {mesAtual.receitas?.length > 0 ? (
+                   mesAtual.receitas.map((receita) => (
+                      <div
+                        key={receita.id}
+                        className="p-4 hover:bg-gray-50 dark:hover:bg-dark-border/30 transition-colors flex items-center justify-between group"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
+                            {receita.descricao}
+                          </p>
+                          {isReceitaFutura(receita) && (
+                            <span className="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-900/30">
+                              Agendada para {formatDate(receita.dataDeposito)}
                             </span>
-                         </div>
-                         <div className="text-right flex items-center gap-4">
-                            <span className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(receita.valor)}</span>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                               <button onClick={() => setEditandoReceita(receita)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                                  <Edit className="h-4 w-4" />
-                               </button>
-                               <button onClick={() => handleExcluirReceita(receita)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                                  <Trash2 className="h-4 w-4" />
-                               </button>
-                            </div>
-                         </div>
+                          )}
+                        </div>
+                        <div className="text-right flex items-center gap-4">
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            {formatCurrency(receita.valor)}
+                          </span>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            <button
+                              onClick={() => setEditandoReceita(receita)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleExcluirReceita(receita)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                    ))
                 ) : (
@@ -327,7 +270,7 @@ const QuinzenaPage = () => {
                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Despesas</h2>
             </div>
             <Button 
-               onClick={() => setShowDespesaForm(!showDespesaForm)} 
+               onClick={() => setShowDespesaModal(true)} 
                variant="secondary" 
                size="small" 
                icon={Plus}
@@ -338,30 +281,9 @@ const QuinzenaPage = () => {
           </div>
 
           <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border overflow-hidden">
-             {showDespesaForm && (
-                <div className="p-4 bg-gray-50 dark:bg-dark-border/30 border-b border-gray-100 dark:border-dark-border">
-                   <h3 className="text-sm font-semibold mb-3">Nova Despesa</h3>
-                   <DespesaForm
-                      onSubmit={handleAdicionarDespesa}
-                      onCancel={() => setShowDespesaForm(false)}
-                   />
-                </div>
-             )}
-
-             {editandoDespesa && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/30">
-                   <DespesaForm
-                      onSubmit={handleEditarDespesa}
-                      onCancel={() => setEditandoDespesa(null)}
-                      onDelete={handleExcluirDespesa}
-                      initialData={editandoDespesa}
-                   />
-                </div>
-             )}
-
              <div className="divide-y divide-gray-100 dark:divide-dark-border">
-                {quinzenaAtual.parcelas?.length > 0 ? (
-                   quinzenaAtual.parcelas.map((parcela) => (
+                {mesAtual.parcelas?.length > 0 ? (
+                   mesAtual.parcelas.map((parcela) => (
                       <div key={parcela.id} className="p-4 hover:bg-gray-50 dark:hover:bg-dark-border/30 transition-colors flex items-start justify-between group">
                          <div className="flex items-start gap-3">
                             <div className={`mt-1 h-2 w-2 rounded-full ${parcela.pago ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -376,9 +298,11 @@ const QuinzenaPage = () => {
                                   <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-dark-border px-2 py-0.5 rounded-full">
                                      {parcela.despesa?.categoria || 'Geral'}
                                   </span>
-                                  <span className={`text-xs ${new Date(parcela.dataVencimento) < new Date() && !parcela.pago ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
-                                     Vence {formatDate(parcela.dataVencimento)}
-                                  </span>
+                                  {parcela.dataVencimento && (
+                                    <span className={`text-xs ${new Date(parcela.dataVencimento) < new Date() && !parcela.pago ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                                       Vence {formatDate(parcela.dataVencimento)}
+                                    </span>
+                                  )}
                                </div>
                             </div>
                          </div>
@@ -419,8 +343,68 @@ const QuinzenaPage = () => {
           </div>
         </section>
       </div>
+
+      {/* Modal: Nova Receita */}
+      <Modal
+        isOpen={showReceitaModal}
+        onClose={() => setShowReceitaModal(false)}
+        title="Nova Receita"
+        size="sm"
+      >
+        <ReceitaForm
+          onSubmit={handleAdicionarReceita}
+          onCancel={() => setShowReceitaModal(false)}
+        />
+      </Modal>
+
+      {/* Modal: Editar Receita */}
+      <Modal
+        isOpen={!!editandoReceita}
+        onClose={() => setEditandoReceita(null)}
+        title="Editar Receita"
+        size="sm"
+      >
+        {editandoReceita && (
+          <ReceitaForm
+            onSubmit={handleEditarReceita}
+            onCancel={() => setEditandoReceita(null)}
+            onDelete={handleExcluirReceita}
+            initialData={editandoReceita}
+          />
+        )}
+      </Modal>
+
+      {/* Modal: Nova Despesa */}
+      <Modal
+        isOpen={showDespesaModal}
+        onClose={() => setShowDespesaModal(false)}
+        title="Nova Despesa"
+        size="md"
+      >
+        <DespesaForm
+          onSubmit={handleAdicionarDespesa}
+          onCancel={() => setShowDespesaModal(false)}
+        />
+      </Modal>
+
+      {/* Modal: Editar Despesa */}
+      <Modal
+        isOpen={!!editandoDespesa}
+        onClose={() => setEditandoDespesa(null)}
+        title="Editar Despesa"
+        size="md"
+      >
+        {editandoDespesa && (
+          <DespesaForm
+            onSubmit={handleEditarDespesa}
+            onCancel={() => setEditandoDespesa(null)}
+            onDelete={handleExcluirDespesa}
+            initialData={editandoDespesa}
+          />
+        )}
+      </Modal>
     </div>
   );
 };
 
-export default QuinzenaPage;
+export default MesDetalhePage;

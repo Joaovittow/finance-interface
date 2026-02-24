@@ -1,3 +1,5 @@
+import { somarReceitasDisponiveis } from './dateUtils';
+
 export const formatCurrency = (value) => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -39,7 +41,7 @@ export const getCurrentMonthYear = () => {
 }
 
 export const calcularSaldo = (saldoAnterior, receitas, despesasPagas) => {
-  const totalReceitas = receitas.reduce((sum, rec) => sum + rec.valor, 0)
+  const totalReceitas = somarReceitasDisponiveis(receitas)
   const totalDespesasPagas = despesasPagas.reduce((sum, parc) => 
     sum + (parc.valorPago || parc.valorParcela), 0
   )

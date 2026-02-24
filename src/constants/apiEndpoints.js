@@ -5,10 +5,6 @@ export const ENDPOINTS = {
     BASE: '/meses',
     BY_ID: (id) => `/meses/${id}`,
   },
-  QUINZENAS: {
-    BY_ID: (id) => `/quinzenas/${id}`,
-    CALCULOS: (id) => `/quinzenas/${id}/calculos`,
-  },
   RECEITAS: {
     BASE: '/receitas',
     BY_ID: (id) => `/receitas/${id}`,
@@ -19,7 +15,8 @@ export const ENDPOINTS = {
   },
   PARCELAS: {
     PAGAR: (id) => `/parcelas/${id}/pagar`,
-    BY_QUINZENA: (quinzenaId) => `/parcelas/quinzena/${quinzenaId}`,
+    BY_MES: (mesId) => `/parcelas/mes/${mesId}`,
+    BY_ID: (id) => `/parcelas/${id}`,
   },
   USERS: {
     SETUP: '/users/setup',

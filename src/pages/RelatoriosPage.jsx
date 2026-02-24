@@ -3,7 +3,11 @@ import { PieChart, BarChart } from '../components/charts';
 import Card from '../components/ui/Card';
 import { useFinanceContext } from '../contexts/FinanceContext';
 import { formatCurrency, formatMonthYear } from '../utils/formatters';
-import { calcularMesAtivo, mesEhAtivo } from '../utils/dateUtils';
+import {
+  calcularMesAtivo,
+  mesEhAtivo,
+  somarReceitasDisponiveis,
+} from '../utils/dateUtils';
 import { ArrowUpRight, ArrowDownLeft, Calendar, Info, BarChart3 } from 'lucide-react';
 
 const RelatoriosPage = () => {
@@ -35,7 +39,6 @@ const RelatoriosPage = () => {
 
   const gerarRelatorio = (mesId) => {
     setLoading(true);
-    // Simulating calculation delay for smooth transition
     setTimeout(() => {
       if (!meses.length) {
         setDadosRelatorio(null);
@@ -50,17 +53,16 @@ const RelatoriosPage = () => {
         return;
       }
 
+      // Acesso direto — sem quinzenas
       const gastosPorCategoria = {};
-      mes.quinzenas.forEach((quinzena) => {
-        quinzena.parcelas.forEach((parcela) => {
-          if (parcela.despesa && parcela.despesa.categoria) {
-            const categoria = parcela.despesa.categoria;
-            if (!gastosPorCategoria[categoria]) {
-              gastosPorCategoria[categoria] = 0;
-            }
-            gastosPorCategoria[categoria] += parcela.valorParcela;
+      (mes.parcelas || []).forEach((parcela) => {
+        if (parcela.despesa && parcela.despesa.categoria) {
+          const categoria = parcela.despesa.categoria;
+          if (!gastosPorCategoria[categoria]) {
+            gastosPorCategoria[categoria] = 0;
           }
-        });
+          gastosPorCategoria[categoria] += parcela.valorParcela;
+        }
       });
 
       const dadosCategorias = Object.entries(gastosPorCategoria).map(
@@ -70,56 +72,29 @@ const RelatoriosPage = () => {
         }),
       ).sort((a,b) => b.value - a.value);
 
-      const dadosQuinzenas = mes.quinzenas.map((quinzena) => {
-        const totalReceitas = quinzena.receitas.reduce(
-          (sum, rec) => sum + rec.valor,
+      const totalReceitas = somarReceitasDisponiveis(mes.receitas);
+      const totalDespesas = (mes.parcelas || [])
+        .filter((p) => p.pago)
+        .reduce(
+          (sum, parc) => sum + (parc.valorPago || parc.valorParcela),
           0,
         );
-        const totalDespesas = quinzena.parcelas
-          .filter((p) => p.pago)
-          .reduce(
-            (sum, parc) => sum + (parc.valorPago || parc.valorParcela),
-            0,
-          );
-        return {
-          label: quinzena.tipo === 'primeira' ? '1ª Quiz.' : '2ª Quiz.',
-          receitas: totalReceitas,
-          despesas: totalDespesas,
-        };
-      });
+
+      // Dados do gráfico de barras: Receitas vs Despesas (simples)
+      const dadosBarras = [
+        { label: 'Receitas', value: totalReceitas },
+        { label: 'Despesas', value: totalDespesas },
+      ];
 
       setDadosRelatorio({
         mes: formatMonthYear(mes.mes, mes.ano),
         mesObj: mes,
         categorias: dadosCategorias,
-        quinzenas: dadosQuinzenas,
+        barras: dadosBarras,
         resumo: {
-          totalReceitas: mes.quinzenas.reduce(
-            (total, q) =>
-              total + q.receitas.reduce((sum, r) => sum + r.valor, 0),
-            0,
-          ),
-          totalDespesas: mes.quinzenas.reduce(
-            (total, q) =>
-              total +
-              q.parcelas
-                .filter((p) => p.pago)
-                .reduce((sum, p) => sum + (p.valorPago || p.valorParcela), 0),
-            0,
-          ),
-          saldo: mes.quinzenas.reduce(
-            (total, q) =>
-              total +
-              (q.saldoAnterior +
-                q.receitas.reduce((sum, r) => sum + r.valor, 0) -
-                q.parcelas
-                  .filter((p) => p.pago)
-                  .reduce(
-                    (sum, p) => sum + (p.valorPago || p.valorParcela),
-                    0,
-                  )),
-            0,
-          ),
+          totalReceitas,
+          totalDespesas,
+          saldo: totalReceitas - totalDespesas,
         },
       });
       setLoading(false);
@@ -127,13 +102,13 @@ const RelatoriosPage = () => {
   };
 
   const colors = [
-    '#8B5CF6', // Purple
-    '#EC4899', // Pink
-    '#10B981', // Emerald
-    '#F59E0B', // Amber
-    '#3B82F6', // Blue
-    '#EF4444', // Red
-    '#06B6D4', // Cyan
+    '#8B5CF6',
+    '#EC4899',
+    '#10B981',
+    '#F59E0B',
+    '#3B82F6',
+    '#EF4444',
+    '#06B6D4',
   ];
 
   if (!meses.length) {
@@ -225,26 +200,14 @@ const RelatoriosPage = () => {
             </Card>
 
             <Card className="bg-white dark:bg-dark-card border-none shadow-soft flex flex-col">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 border-b border-gray-100 dark:border-dark-border pb-2">Balanço Quinzenal</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 border-b border-gray-100 dark:border-dark-border pb-2">Receitas vs Despesas</h3>
               
-              <div className="flex-1 flex flex-col justify-center space-y-8">
-                 <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 pl-1">Receitas</h4>
-                    <BarChart
-                       data={dadosRelatorio.quinzenas.map((q) => ({ label: q.label, value: q.receitas }))}
-                       colors={['#10B981', '#34D399']}
-                       height={100}
-                    />
-                 </div>
-                 
-                 <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 pl-1">Despesas Pagas</h4>
-                    <BarChart
-                       data={dadosRelatorio.quinzenas.map((q) => ({ label: q.label, value: q.despesas }))}
-                       colors={['#EF4444', '#F87171']}
-                       height={100}
-                    />
-                 </div>
+              <div className="flex-1 flex flex-col justify-center">
+                 <BarChart
+                    data={dadosRelatorio.barras}
+                    colors={['#10B981', '#EF4444']}
+                    height={160}
+                 />
               </div>
             </Card>
           </div>
@@ -272,7 +235,9 @@ const RelatoriosPage = () => {
                          {formatCurrency(cat.value)}
                       </td>
                       <td className="py-3 px-6 text-right text-gray-500 dark:text-gray-400">
-                         {((cat.value / dadosRelatorio.resumo.totalDespesas) * 100).toFixed(1)}%
+                         {dadosRelatorio.resumo.totalDespesas > 0 
+                           ? ((cat.value / dadosRelatorio.resumo.totalDespesas) * 100).toFixed(1) 
+                           : 0}%
                       </td>
                     </tr>
                   ))}

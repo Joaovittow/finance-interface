@@ -34,7 +34,7 @@ const AppShell = ({ children }) => {
       <div className="md:ml-64 flex flex-col min-h-screen pb-20 md:pb-0">
         <Header title={getPageTitle(location.pathname)} />
         
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
+        <main className="flex-1 px-4 py-4 sm:px-6 sm:py-6 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
           {children}
         </main>
       </div>

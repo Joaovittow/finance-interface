@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Input from '../ui/Input';
-import Select from '../ui/Select';
 import Button from '../ui/Button';
-import { TIPOS_RECEITA } from '../../constants/apiEndpoints';
+import { toLocalYMD } from '../../utils/dateUtils';
 
 const ReceitaForm = ({
   onSubmit,
@@ -14,7 +13,7 @@ const ReceitaForm = ({
   const [formData, setFormData] = useState({
     descricao: '',
     valor: '',
-    tipo: TIPOS_RECEITA.VARIAVEL,
+    dataDeposito: toLocalYMD(new Date()),
   });
 
   useEffect(() => {
@@ -22,7 +21,7 @@ const ReceitaForm = ({
       setFormData({
         descricao: initialData.descricao,
         valor: initialData.valor.toString(),
-        tipo: initialData.tipo,
+        dataDeposito: initialData.dataDeposito || toLocalYMD(new Date()),
       });
     }
   }, [initialData]);
@@ -53,31 +52,32 @@ const ReceitaForm = ({
           setFormData({ ...formData, descricao: e.target.value })
         }
         required
+        placeholder="Ex: Salário, Freelance..."
         className="bg-white dark:bg-dark-card"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="Valor"
-          type="number"
-          step="0.01"
-          value={formData.valor}
-          onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-          required
-          className="bg-white dark:bg-dark-card"
-        />
+      <Input
+        label="Valor"
+        type="number"
+        step="0.01"
+        value={formData.valor}
+        onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+        required
+        placeholder="0,00"
+        className="bg-white dark:bg-dark-card"
+      />
 
-        <Select
-          label="Tipo"
-          value={formData.tipo}
-          onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-          options={[
-            { value: TIPOS_RECEITA.FIXA, label: 'Fixa' },
-            { value: TIPOS_RECEITA.VARIAVEL, label: 'Variável' },
-          ]}
-          className="bg-white dark:bg-dark-card"
-        />
-      </div>
+      <Input
+        label="Data do depósito"
+        type="date"
+        value={formData.dataDeposito}
+        onChange={(e) =>
+          setFormData({ ...formData, dataDeposito: e.target.value })
+        }
+        required
+        helperText="Receitas com data futura só entram no total quando o dia chegar."
+        className="bg-white dark:bg-dark-card"
+      />
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button

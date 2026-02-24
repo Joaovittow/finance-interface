@@ -68,13 +68,14 @@ export class ApiService {
   }
 
   static async updateConfiguracao(chave, valor) {
-    const chaveCodificada = encodeURIComponent(chave); // Codifica caracteres especiais
+    const chaveCodificada = encodeURIComponent(chave);
     const response = await api.put(`/users/configuracoes/${chaveCodificada}`, {
       valor,
     });
     return response.data;
   }
-  // Existing endpoints
+
+  // Meses
   static async getMeses() {
     const response = await api.get(ENDPOINTS.MESES.BASE);
     return response.data;
@@ -99,21 +100,7 @@ export class ApiService {
     await api.delete(ENDPOINTS.MESES.BY_ID(id));
   }
 
-  static async getQuinzenaById(id) {
-    const response = await api.get(ENDPOINTS.QUINZENAS.BY_ID(id));
-    return response.data;
-  }
-
-  static async getQuinzenaCalculos(id) {
-    const response = await api.get(ENDPOINTS.QUINZENAS.CALCULOS(id));
-    return response.data;
-  }
-
-  static async updateQuinzena(id, data) {
-    const response = await api.put(ENDPOINTS.QUINZENAS.BY_ID(id), data);
-    return response.data;
-  }
-
+  // Receitas
   static async createReceita(data) {
     const response = await api.post(ENDPOINTS.RECEITAS.BASE, data);
     return response.data;
@@ -128,6 +115,7 @@ export class ApiService {
     await api.delete(ENDPOINTS.RECEITAS.BY_ID(id));
   }
 
+  // Despesas
   static async createDespesa(data) {
     const response = await api.post(ENDPOINTS.DESPESAS.BASE, data);
     return response.data;
@@ -142,6 +130,7 @@ export class ApiService {
     await api.delete(ENDPOINTS.DESPESAS.BY_ID(id));
   }
 
+  // Parcelas
   static async marcarParcelaComoPaga(id, valorPago = null) {
     const response = await api.patch(ENDPOINTS.PARCELAS.PAGAR(id), {
       valorPago,
@@ -149,8 +138,8 @@ export class ApiService {
     return response.data;
   }
 
-  static async getParcelasPorQuinzena(quinzenaId) {
-    const response = await api.get(ENDPOINTS.PARCELAS.BY_QUINZENA(quinzenaId));
+  static async getParcelasPorMes(mesId) {
+    const response = await api.get(ENDPOINTS.PARCELAS.BY_MES(mesId));
     return response.data;
   }
 
@@ -159,6 +148,7 @@ export class ApiService {
     return response.data;
   }
 
+  // Configurações
   static async createConfiguracao(data) {
     const response = await api.post('/users/configuracoes', data);
     return response.data;

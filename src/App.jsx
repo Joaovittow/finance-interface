@@ -5,7 +5,7 @@ import { FinanceProvider } from './contexts/FinanceContext';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import MesesPage from './pages/MesesPage';
-import QuinzenaPage from './pages/QuinzenaPage';
+import MesDetalhePage from './pages/MesDetalhePage';
 import RelatoriosPage from './pages/RelatoriosPage';
 import ConfiguracoesPage from './pages/ConfiguracoesPage';
 import AuthPage from './pages/AuthPage';
@@ -39,11 +39,11 @@ function App() {
               }
             />
             <Route
-              path="/quinzena/:id"
+              path="/mes/:id"
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <QuinzenaPage />
+                    <MesDetalhePage />
                   </Layout>
                 </ProtectedRoute>
               }

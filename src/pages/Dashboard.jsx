@@ -6,14 +6,15 @@ import {
   Plus,
   ArrowUpRight,
   ArrowDownLeft,
-  PieChart
+  PieChart,
+  DollarSign
 } from 'lucide-react';
 import { useFinanceContext } from '../contexts/FinanceContext';
-import { formatCurrency, formatMonthYear } from '../utils/formatters';
+import { formatCurrency } from '../utils/formatters';
 import Card from '../components/ui/Card';
 import CriarMesModal from '../components/mes/CriarMesModal';
 import { PieChart as CustomPieChart } from '../components/charts';
-import { calcularMesAtivo } from '../utils/dateUtils';
+import { calcularMesAtivo, somarReceitasDisponiveis } from '../utils/dateUtils';
 
 const Dashboard = () => {
   const { meses, loading, carregarMeses } = useFinanceContext();
@@ -30,38 +31,29 @@ const Dashboard = () => {
     meses?.find((m) => m.mes === mesAtivo.mes && m.ano === mesAtivo.ano) ||
     null;
 
-  const totalReceitas =
-    mesAtual?.quinzenas?.reduce(
-      (total, q) => total + (q.receitas?.reduce((s, r) => s + r.valor, 0) || 0),
-      0,
-    ) || 0;
+  // Acesso direto — sem quinzenas
+  const totalReceitas = somarReceitasDisponiveis(mesAtual?.receitas);
 
   const totalDespesas =
-    mesAtual?.quinzenas?.reduce(
-      (total, q) =>
-        total +
-        (q.parcelas
-          ?.filter((p) => p.pago)
-          .reduce((s, p) => s + (p.valorPago || p.valorParcela), 0) || 0),
-      0,
-    ) || 0;
+    mesAtual?.parcelas
+      ?.filter((p) => p.pago)
+      .reduce((s, p) => s + (p.valorPago || p.valorParcela), 0) || 0;
 
   const saldoAtual = totalReceitas - totalDespesas;
+  const saldoAnterior = mesAtual?.saldoAnterior || 0;
   
   // Dados para o gráfico simplificado
   const gastosPorCategoria = {};
-  mesAtual?.quinzenas?.forEach(q => {
-     q.parcelas?.forEach(p => {
-        if(p.despesa?.categoria) {
-           gastosPorCategoria[p.despesa.categoria] = (gastosPorCategoria[p.despesa.categoria] || 0) + (p.valorPago || p.valorParcela);
-        }
-     });
+  mesAtual?.parcelas?.forEach(p => {
+    if (p.despesa?.categoria) {
+      gastosPorCategoria[p.despesa.categoria] = (gastosPorCategoria[p.despesa.categoria] || 0) + (p.valorPago || p.valorParcela);
+    }
   });
   
   const dadosGrafico = Object.entries(gastosPorCategoria)
      .map(([label, value]) => ({ label, value }))
      .sort((a,b) => b.value - a.value)
-     .slice(0, 5); // Top 5
+     .slice(0, 5);
      
   const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
 
@@ -79,7 +71,7 @@ const Dashboard = () => {
       {/* Header com Saldo e Visibilidade */}
       <div className="flex flex-col gap-1">
          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <span className="text-sm font-medium">Saldo em conta</span>
+            <span className="text-sm font-medium">Saldo do mês</span>
             <button onClick={() => setSaldoVisivel(!saldoVisivel)} className="hover:text-brand-600 transition-colors">
                {saldoVisivel ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
@@ -93,6 +85,15 @@ const Dashboard = () => {
                <div className="h-8 w-40 bg-gray-200 dark:bg-dark-border/50 rounded animate-pulse" />
             )}
          </div>
+         {saldoAnterior !== 0 && (
+           <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <DollarSign className="h-3.5 w-3.5" />
+              <span>Saldo mês anterior: </span>
+              <span className={`font-semibold ${saldoAnterior >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {saldoVisivel ? formatCurrency(saldoAnterior) : '••••'}
+              </span>
+           </div>
+         )}
       </div>
 
       {/* Cards de Resumo Rápido */}
@@ -123,7 +124,7 @@ const Dashboard = () => {
       </div>
 
        {/* Ações e Atalhos */}
-       <div className="flex flex-col gap-4">
+       <div className="flex flex-col gap-3">
          <button 
            onClick={() => setModalAberto(true)}
            className="flex items-center justify-center gap-2 w-full p-4 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white rounded-2xl shadow-lg transition-all transform active:scale-[0.98]"
@@ -133,8 +134,8 @@ const Dashboard = () => {
          </button>
        </div>
 
-      {/* Resumo de Gastos (Full Width) */}
-      <Card className="flex flex-col shadow-sm border-none bg-white dark:bg-dark-card min-h-[300px]" hover>
+      {/* Resumo de Gastos */}
+      <Card className="flex flex-col shadow-sm border-none bg-white dark:bg-dark-card min-h-[260px]" hover>
          <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-gray-900 dark:text-gray-100">Despesas por Categoria</h3>
             <Link to="/relatorios" className="text-xs font-medium text-brand-600 hover:text-brand-700">Ver detalhes</Link>
@@ -148,7 +149,7 @@ const Dashboard = () => {
             <div className="flex-1 flex flex-col items-center justify-center py-8 text-gray-400">
                <PieChart className="h-12 w-12 mb-3 opacity-20" />
                <span className="text-sm">Nenhuma despesa registrada neste mês.</span>
-               <span className="text-xs text-gray-500 mt-1">Cadastre despesas nas quinzenas para visualizar.</span>
+               <span className="text-xs text-gray-500 mt-1">Cadastre despesas para visualizar.</span>
             </div>
          )}
       </Card>

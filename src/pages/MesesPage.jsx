@@ -4,7 +4,6 @@ import { Plus, Calendar, ChevronRight, Trash2, CalendarDays } from 'lucide-react
 import { useFinanceContext } from '../contexts/FinanceContext';
 import { useConfirmDialog } from '../hooks/useConfirmDialog';
 import { formatMonthYear } from '../utils/formatters';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import CriarMesModal from '../components/mes/CriarMesModal';
@@ -27,7 +26,7 @@ const MesesPage = () => {
   }, [carregarMeses]);
 
   const handleExcluirMes = (e, mes) => {
-    e.preventDefault(); // Prevent navigation
+    e.preventDefault();
     showConfirm({
       title: 'Excluir Mês',
       message: `Deseja realmente excluir ${formatMonthYear(mes.mes, mes.ano)}?`,
@@ -55,7 +54,7 @@ const MesesPage = () => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 md:pb-0">
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -74,7 +73,7 @@ const MesesPage = () => {
            </div>
            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Nenhum mês encontrado</h3>
            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
-             Comece criando seu primeiro mês para organizar suas finanças quinzenais.
+             Comece criando seu primeiro mês para organizar suas finanças.
            </p>
            <Button onClick={() => setModalAberto(true)} variant="primary">
              Criar Primeiro Mês
@@ -91,13 +90,10 @@ const MesesPage = () => {
                        {listaMeses.sort((a,b) => b.mes - a.mes).map((mes) => (
                           <Link 
                              key={mes.id}
-                             to={`/quinzena/${mes.quinzenas?.[0]?.id}`} // Link to first quinzena generally, or maybe a MesDetails page? Current system links to quinzena.
-                             // Actually, original code had links to individual quinzenas.
-                             // Maybe I should link to a month details? Or keep listing quinzenas?
-                             // Let's create a Card that lists quinzenas inside.
+                             to={`/mes/${mes.id}`}
                              className="group bg-white dark:bg-dark-card rounded-2xl p-5 border border-gray-100 dark:border-dark-border shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all duration-300 block relative"
                           >
-                             <div className="flex justify-between items-start mb-4">
+                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-3">
                                    <div className="h-10 w-10 rounded-full bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform">
                                       <Calendar className="h-5 w-5" />
@@ -106,28 +102,17 @@ const MesesPage = () => {
                                       <h3 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 transition-colors">
                                          {formatMonthYear(mes.mes, mes.ano)}
                                       </h3>
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                                         {mes.quinzenas?.length || 0} quinzenas
-                                      </span>
                                    </div>
                                 </div>
-                                <button 
-                                   onClick={(e) => handleExcluirMes(e, mes)}
-                                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors z-10"
-                                >
-                                   <Trash2 className="h-4 w-4" />
-                                </button>
-                             </div>
-
-                             <div className="space-y-2">
-                                {mes.quinzenas?.map((q) => (
-                                   <div key={q.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-gray-50 dark:bg-dark-border/30 hover:bg-gray-100 dark:hover:bg-dark-border/50 transition-colors">
-                                      <span className="text-gray-700 dark:text-gray-300 font-medium">
-                                         {q.tipo === 'primeira' ? '1ª Quinzena (Dia 15)' : '2ª Quinzena (Dia 30)'}
-                                      </span>
-                                      <ChevronRight className="h-4 w-4 text-gray-400" />
-                                   </div>
-                                ))}
+                                <div className="flex items-center gap-2">
+                                   <button 
+                                      onClick={(e) => handleExcluirMes(e, mes)}
+                                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors z-10"
+                                   >
+                                      <Trash2 className="h-4 w-4" />
+                                   </button>
+                                   <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-brand-600 transition-colors" />
+                                </div>
                              </div>
                           </Link>
                        ))}

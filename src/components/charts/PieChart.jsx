@@ -49,8 +49,8 @@ const PieChart = ({ data, colors, width = 200, height = 200 }) => {
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="relative">
-        <svg width={width} height={height} viewBox="0 0 200 200" className="transform transition-transform">
+      <div className="relative max-w-full">
+        <svg width={width} height={height} viewBox="0 0 200 200" className="transform transition-transform max-w-full h-auto">
           {segments}
           <circle cx="100" cy="100" r="60" className="fill-white dark:fill-dark-card" />
         </svg>

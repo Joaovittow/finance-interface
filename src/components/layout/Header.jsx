@@ -15,9 +15,9 @@ const Header = ({ title }) => {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border-b border-gray-100 dark:border-dark-border">
+    <header className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border-b border-gray-100 dark:border-dark-border">
       <div className="flex flex-col">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
           {title || 'Dashboard'}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">

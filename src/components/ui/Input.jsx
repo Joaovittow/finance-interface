@@ -31,7 +31,7 @@ const Input = forwardRef(({
             w-full 
             ${StartIcon ? 'pl-10' : 'px-4'} 
             ${EndIcon ? 'pr-10' : 'px-4'}
-            py-3 
+            py-2.5 
             bg-gray-50 dark:bg-dark-card
             border border-gray-200 dark:border-dark-border
             text-gray-900 dark:text-white

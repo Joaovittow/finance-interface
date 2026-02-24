@@ -8,8 +8,8 @@ const LoadingSpinner = ({ size = 'medium', text = 'Carregando...' }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg flex items-center space-x-3">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-6">
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg flex items-center space-x-3 w-full max-w-xs sm:max-w-sm">
         <div 
           className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size]}`}
         />

@@ -1,38 +1,33 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { ApiService } from '../services/apiService';
+import { somarReceitasDisponiveis } from '../utils/dateUtils';
 
 export const useFinance = () => {
   const [meses, setMeses] = useState([]);
-  const [quinzenaAtual, setQuinzenaAtual] = useState(null);
+  const [mesAtual, setMesAtual] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Função para calcular totais da quinzena
-  const calcularTotais = useCallback((quinzena) => {
-    if (!quinzena) {
-      return {};
-    }
+  // Calcula totais do mês (acesso direto, sem quinzenas)
+  const calcularTotais = useCallback((mes) => {
+    if (!mes) return {};
 
-    const totalReceitas = (quinzena.receitas || []).reduce(
-      (total, receita) => total + receita.valor,
-      0,
-    );
-    const totalDespesas = (quinzena.parcelas || []).reduce(
+    const totalReceitas = somarReceitasDisponiveis(mes.receitas);
+    const totalDespesas = (mes.parcelas || []).reduce(
       (total, parcela) => total + parcela.valorParcela,
       0,
     );
-    const totalDespesasPagas = (quinzena.parcelas || [])
+    const totalDespesasPagas = (mes.parcelas || [])
       .filter((parcela) => parcela.pago)
-      .reduce((total, parcela) => total + parcela.valorParcela, 0);
+      .reduce((total, parcela) => total + (parcela.valorPago || parcela.valorParcela), 0);
 
-    const saldoDisponivel =
-      quinzena.saldoAnterior + totalReceitas - totalDespesasPagas;
+    const saldo = totalReceitas - totalDespesasPagas;
 
     return {
       totalReceitas,
       totalDespesas,
       totalDespesasPagas,
-      saldoDisponivel,
+      saldo,
     };
   }, []);
 
@@ -63,20 +58,20 @@ export const useFinance = () => {
     }
   }, []);
 
-  const carregarQuinzena = useCallback(
+  const carregarMes = useCallback(
     async (id) => {
       setLoading(true);
       setError(null);
       try {
-        const quinzena = await ApiService.getQuinzenaById(id);
-        const calculos = calcularTotais(quinzena);
-        setQuinzenaAtual({
-          ...quinzena,
+        const mes = await ApiService.getMesById(id);
+        const calculos = calcularTotais(mes);
+        setMesAtual({
+          ...mes,
           calculos,
         });
-        return quinzena;
+        return mes;
       } catch (err) {
-        setError(err.response?.data?.error || 'Erro ao carregar quinzena');
+        setError(err.response?.data?.error || 'Erro ao carregar mês');
         throw err;
       } finally {
         setLoading(false);
@@ -86,22 +81,22 @@ export const useFinance = () => {
   );
 
   const adicionarReceita = useCallback(
-    async (quinzenaId, receitaData) => {
+    async (mesId, receitaData) => {
       setError(null);
       try {
         const receita = await ApiService.createReceita({
-          quinzenaId,
+          mesId,
           ...receitaData,
         });
 
-        if (quinzenaAtual && quinzenaAtual.id === quinzenaId) {
-          const quinzenaAtualizada = {
-            ...quinzenaAtual,
-            receitas: [...(quinzenaAtual.receitas || []), receita],
+        if (mesAtual && mesAtual.id === mesId) {
+          const mesAtualizado = {
+            ...mesAtual,
+            receitas: [...(mesAtual.receitas || []), receita],
           };
-          const calculos = calcularTotais(quinzenaAtualizada);
-          setQuinzenaAtual({
-            ...quinzenaAtualizada,
+          const calculos = calcularTotais(mesAtualizado);
+          setMesAtual({
+            ...mesAtualizado,
             calculos,
           });
         }
@@ -112,30 +107,30 @@ export const useFinance = () => {
         throw err;
       }
     },
-    [quinzenaAtual, calcularTotais],
+    [mesAtual, calcularTotais],
   );
 
   const adicionarDespesa = useCallback(
-    async (quinzenaId, despesaData) => {
+    async (mesId, despesaData) => {
       setError(null);
       try {
         const despesa = await ApiService.createDespesa({
-          quinzenaId,
+          mesId,
           ...despesaData,
         });
 
-        if (quinzenaAtual && quinzenaAtual.id === quinzenaId) {
-          const quinzenaAtualizada = {
-            ...quinzenaAtual,
-            despesas: [...(quinzenaAtual.despesas || []), despesa],
+        if (mesAtual && mesAtual.id === mesId) {
+          const mesAtualizado = {
+            ...mesAtual,
+            despesas: [...(mesAtual.despesas || []), despesa],
             parcelas: [
-              ...(quinzenaAtual.parcelas || []),
+              ...(mesAtual.parcelas || []),
               ...(despesa.parcelasRelacao || []),
             ],
           };
-          const calculos = calcularTotais(quinzenaAtualizada);
-          setQuinzenaAtual({
-            ...quinzenaAtualizada,
+          const calculos = calcularTotais(mesAtualizado);
+          setMesAtual({
+            ...mesAtualizado,
             calculos,
           });
         }
@@ -146,7 +141,7 @@ export const useFinance = () => {
         throw err;
       }
     },
-    [quinzenaAtual, calcularTotais],
+    [mesAtual, calcularTotais],
   );
 
   const marcarParcelaComoPaga = useCallback(
@@ -158,16 +153,16 @@ export const useFinance = () => {
           valorPago,
         );
 
-        if (quinzenaAtual) {
-          const quinzenaAtualizada = {
-            ...quinzenaAtual,
-            parcelas: (quinzenaAtual.parcelas || []).map((p) =>
+        if (mesAtual) {
+          const mesAtualizado = {
+            ...mesAtual,
+            parcelas: (mesAtual.parcelas || []).map((p) =>
               p.id === parcelaId ? parcelaAtualizada : p,
             ),
           };
-          const calculos = calcularTotais(quinzenaAtualizada);
-          setQuinzenaAtual({
-            ...quinzenaAtualizada,
+          const calculos = calcularTotais(mesAtualizado);
+          setMesAtual({
+            ...mesAtualizado,
             calculos,
           });
         }
@@ -180,26 +175,8 @@ export const useFinance = () => {
         throw err;
       }
     },
-    [quinzenaAtual, calcularTotais],
+    [mesAtual, calcularTotais],
   );
-
-  const inicializarApp = useCallback(async () => {
-    setLoading(true);
-    try {
-      await ApiService.getUserTest();
-      await carregarMeses();
-    } catch (err) {
-      if (err.response?.status === 404) {
-        await ApiService.setupUser();
-        await carregarMeses();
-      } else {
-        setError('Erro ao inicializar aplicação');
-        throw err;
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [carregarMeses]);
 
   const atualizarReceita = useCallback(
     async (id, data) => {
@@ -207,16 +184,16 @@ export const useFinance = () => {
       try {
         const receitaAtualizada = await ApiService.updateReceita(id, data);
 
-        if (quinzenaAtual) {
-          const quinzenaAtualizada = {
-            ...quinzenaAtual,
-            receitas: (quinzenaAtual.receitas || []).map((r) =>
+        if (mesAtual) {
+          const mesAtualizado = {
+            ...mesAtual,
+            receitas: (mesAtual.receitas || []).map((r) =>
               r.id === id ? { ...r, ...receitaAtualizada } : r,
             ),
           };
-          const calculos = calcularTotais(quinzenaAtualizada);
-          setQuinzenaAtual({
-            ...quinzenaAtualizada,
+          const calculos = calcularTotais(mesAtualizado);
+          setMesAtual({
+            ...mesAtualizado,
             calculos,
           });
         }
@@ -227,7 +204,7 @@ export const useFinance = () => {
         throw err;
       }
     },
-    [quinzenaAtual, calcularTotais],
+    [mesAtual, calcularTotais],
   );
 
   const excluirReceita = useCallback(
@@ -236,14 +213,14 @@ export const useFinance = () => {
       try {
         await ApiService.deleteReceita(id);
 
-        if (quinzenaAtual) {
-          const quinzenaAtualizada = {
-            ...quinzenaAtual,
-            receitas: (quinzenaAtual.receitas || []).filter((r) => r.id !== id),
+        if (mesAtual) {
+          const mesAtualizado = {
+            ...mesAtual,
+            receitas: (mesAtual.receitas || []).filter((r) => r.id !== id),
           };
-          const calculos = calcularTotais(quinzenaAtualizada);
-          setQuinzenaAtual({
-            ...quinzenaAtualizada,
+          const calculos = calcularTotais(mesAtualizado);
+          setMesAtual({
+            ...mesAtualizado,
             calculos,
           });
         }
@@ -252,7 +229,7 @@ export const useFinance = () => {
         throw err;
       }
     },
-    [quinzenaAtual, calcularTotais],
+    [mesAtual, calcularTotais],
   );
 
   const atualizarDespesa = useCallback(
@@ -261,8 +238,8 @@ export const useFinance = () => {
       try {
         const despesaAtualizada = await ApiService.updateDespesa(id, data);
 
-        if (quinzenaAtual) {
-          await carregarQuinzena(quinzenaAtual.id);
+        if (mesAtual) {
+          await carregarMes(mesAtual.id);
         }
 
         return despesaAtualizada;
@@ -271,7 +248,7 @@ export const useFinance = () => {
         throw err;
       }
     },
-    [quinzenaAtual, carregarQuinzena],
+    [mesAtual, carregarMes],
   );
 
   const excluirDespesa = useCallback(
@@ -280,15 +257,15 @@ export const useFinance = () => {
       try {
         await ApiService.deleteDespesa(id);
 
-        if (quinzenaAtual) {
-          await carregarQuinzena(quinzenaAtual.id);
+        if (mesAtual) {
+          await carregarMes(mesAtual.id);
         }
       } catch (err) {
         setError(err.response?.data?.error || 'Erro ao excluir despesa');
         throw err;
       }
     },
-    [quinzenaAtual, carregarQuinzena],
+    [mesAtual, carregarMes],
   );
 
   const excluirMes = useCallback(async (id) => {
@@ -308,16 +285,15 @@ export const useFinance = () => {
 
   return {
     meses,
-    quinzenaAtual,
+    mesAtual,
     loading,
     error,
     carregarMeses,
     criarMes,
-    carregarQuinzena,
+    carregarMes,
     adicionarReceita,
     adicionarDespesa,
     marcarParcelaComoPaga,
-    inicializarApp,
     limparError,
     atualizarReceita,
     excluirReceita,
